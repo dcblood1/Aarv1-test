@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp"
+    >
+
+    <ImageView
+        android:id="@+id/aar_item_image"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:background="#757575"
+        android:scaleType="centerCrop"
+        android:src="@drawable/food_1" />
+
+    <TextView
+        android:id="@+id/aar_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/aar_item_image"
+        android:maxLines="1"
+        android:text="Title"
+        android:paddingLeft="8dp"
+        />
+
+    <TextView
+        android:id="@+id/aar_topic_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/aar_item_image"
+        android:layout_below="@id/aar_title"
+        android:maxLines="1"
+        android:text="Drilling Topic"
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp"
+        />
+
+    <TextView
+        android:id="@+id/aar_recommendations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/aar_item_image"
+        android:layout_below="@id/aar_topic_name"
+        android:maxLines="3"
+        android:text="Recommendations: This is another line of text. This is another line of text This is another line of text. This is another line of text."
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp"
+        />
+
+    <TextView
+        android:id="@+id/votes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:maxLines="1"
+        android:text="###"
+        android:paddingLeft="8dp"
+        />
+    <Button
+        android:id="@+id/down_vote"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:text="D"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/votes"
+        android:layout_toStartOf="@+id/votes" />
+
+    <Button
+        android:id="@+id/up_vote"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:text="U"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/down_vote"
+        android:layout_toStartOf="@+id/down_vote" />
+
+
+</RelativeLayout>
