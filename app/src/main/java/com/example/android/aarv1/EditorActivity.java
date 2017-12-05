@@ -18,8 +18,10 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.aarv1.model.AAR;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
@@ -30,8 +32,6 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Dillon on 12/1/2017.
@@ -47,10 +47,12 @@ public class EditorActivity extends AppCompatActivity{
     private EditText mLocationEditText;
     private ImageButton mPhotoPickerButton;
     private Spinner mCategorySpinner;
-    private ImageButton mImageUploaderButton;
     private ImageView mSelectedImageView;
     private Bitmap mBitmapPicture;
     private String mDownloadUrl;
+    private TextView mPhotoPickerTextView;
+    private int mUpVotes = 0;
+    private int mDownVotes = 0;
     Uri filePath;
     ProgressDialog pd;
     // Constant for the photo picker?? idk why this is needed.
@@ -64,18 +66,13 @@ public class EditorActivity extends AppCompatActivity{
     //// firebase instance variables
     private FirebaseStorage mFirebaseStorage;
     private StorageReference mAARPhotosStorageReference;
+    private FirebaseFirestore mFirestore;
 
     // Access a Cloud Firestore instance from your Activity
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     // Access the Firebase Storage instance from my Activity
     FirebaseStorage storage = FirebaseStorage.getInstance();
-
-    // Create a storage reference from our app / a reference is a pointer to the cloud file
-    //StorageReference storageRef = storage.getReference();
-
-    // create a reference to drilling_aar_photos
-    //StorageReference aarPhotosRef = storageRef.child("drilling_aar_photos");
 
     //creating reference to firebase storage
     StorageReference storageRef = storage.getReferenceFromUrl("gs://aarv1-c9483.appspot.com/drilling_aar_photos");
@@ -93,7 +90,6 @@ public class EditorActivity extends AppCompatActivity{
         // Initialize Firebase Components
         mFirebaseStorage = FirebaseStorage.getInstance();
 
-
         // find all of the relevant views that we will need to read user input from
         mTitleEditText = (EditText) findViewById(R.id.edit_aar_title);
         mDescriptionEditText = (EditText) findViewById(R.id.edit_aar_description);
@@ -103,7 +99,7 @@ public class EditorActivity extends AppCompatActivity{
         mPhotoPickerButton = (ImageButton) findViewById(R.id.photoPickerButton);
         mCategorySpinner = (Spinner) findViewById(R.id.edit_aar_category_spinner);
         mSelectedImageView = (ImageView) findViewById(R.id.edit_aar_imageView);
-        mImageUploaderButton = (ImageButton) findViewById(R.id.uploadImageButton);
+        mPhotoPickerTextView = (TextView) findViewById(R.id.photo_picker_TextView);
 
         //call setupSpinner method
         setupSpinner();
@@ -120,39 +116,6 @@ public class EditorActivity extends AppCompatActivity{
                 startActivityForResult(Intent.createChooser(intent,"Select Image"),RC_PHOTO_PICKER);
             }
             });
-
-        mImageUploaderButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (filePath != null){
-                    pd.show();
-                    //hopefully this changes the
-                    StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
-
-                    // upload the image
-                    UploadTask uploadTask = childRef.putFile(filePath);
-
-                    uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            pd.dismiss();
-                            // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                            Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                            Toast.makeText(EditorActivity.this, "Upload successful", Toast.LENGTH_SHORT).show();
-
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            pd.dismiss();
-                            Toast.makeText(EditorActivity.this, "Upload Failed -> " + e, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    Toast.makeText(EditorActivity.this, "Select an image", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
 
     }
 
@@ -172,6 +135,10 @@ public class EditorActivity extends AppCompatActivity{
                 mBitmapPicture = resized;
                 // setting image to ImageView
                 mSelectedImageView.setImageBitmap(resized);
+
+                // Once the image is set, remove the text and button for adding an image
+                mPhotoPickerTextView.setVisibility(View.GONE);
+                mPhotoPickerButton.setVisibility(View.GONE);
 
             } catch (Exception e){
                 e.printStackTrace();
@@ -239,13 +206,14 @@ public class EditorActivity extends AppCompatActivity{
         final String hasLocation = locationEditText.getText().toString();
 
         // gets the current date and time (Sat Dec 02 00:04:26 EST 2017)
-        final Date currentTime = Calendar.getInstance().getTime();
+        final Date hasTimeStamp= Calendar.getInstance().getTime();
 
         Log.v("EditorActivity.java", "filePath before Map: " + filePath);
 
+        // If there is a photo, then go through this and add image to storage, then upload to db with file
         if (filePath != null){
             pd.show();
-            //hopefully this changes the
+            //
             StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
 
             // upload the image
@@ -260,16 +228,20 @@ public class EditorActivity extends AppCompatActivity{
                     mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
                     Log.v("EditorActivity.java", "mDownoladUrl=" + mDownloadUrl);
 
-                    // Create a new aar with with key:value pairs
-                    Map<String, Object> aar = new HashMap<>();
-                    aar.put("category", mCategory);
-                    aar.put("title", hasTitle);
-                    aar.put("description", hasDescription);
-                    aar.put("cause", hasCause);
-                    aar.put("recommendations", hasRecommendations);
-                    aar.put("location", hasLocation);
-                    aar.put("time",currentTime);
-                    aar.put("image",mDownloadUrl);
+                    // Create a new AAR POJO, then set value inputs
+                    AAR aar = new AAR();
+
+                    aar.setCategory(mCategory);
+                    aar.setTitle(hasTitle);
+                    aar.setDescription(hasDescription);
+                    aar.setCause(hasCause);
+                    aar.setRecommendations(hasRecommendations);
+                    aar.setLocation(hasLocation);
+                    aar.setTimeStamp(hasTimeStamp);
+                    aar.setUpVotes(mUpVotes);
+                    aar.setDownVotes(mDownVotes);
+                    aar.setPhoto(mDownloadUrl);
+
 
                     // Add a new document with a generated ID and pass into the Firebase Storage
                     db.collection("aars")
@@ -307,44 +279,50 @@ public class EditorActivity extends AppCompatActivity{
                 }
             });
         } else {
-            Toast.makeText(EditorActivity.this, "Select an image", Toast.LENGTH_SHORT).show();
+            // ELSE if no image is selected.
+            // Create a new AAR POJO,
+            AAR aar = new AAR();
+            aar.setCategory(mCategory);
+            aar.setTitle(hasTitle);
+            aar.setDescription(hasDescription);
+            aar.setCause(hasCause);
+            aar.setRecommendations(hasRecommendations);
+            aar.setLocation(hasLocation);
+            aar.setTimeStamp(hasTimeStamp);
+            aar.setUpVotes(mUpVotes);
+            aar.setDownVotes(mDownVotes);
+
+            // Add a new document with a generated ID and pass into the Firebase Storage
+            db.collection("aars")
+                    .add(aar)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                              @Override
+                                              public void onSuccess(DocumentReference documentReference) {
+                                                  Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                                                  Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+                                              }
+                                          }
+                    )
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w("EditorActivity.java", "Error adding document", e);
+                        }
+                    });
+
+            // closes EditorActivity
+            finish();
         }
 
-/**
-        // Create a new aar with with key:value pairs
-        Map<String, Object> aar = new HashMap<>();
-        aar.put("category", mCategory);
-        aar.put("title", hasTitle);
-        aar.put("description", hasDescription);
-        aar.put("cause", hasCause);
-        aar.put("recommendations", hasRecommendations);
-        aar.put("location", hasLocation);
-        aar.put("time",currentTime);
-        aar.put("image",mDownloadUrl);
-
-        // Add a new document with a generated ID and pass into the Firebase Storage
-        db.collection("aars")
-                .add(aar)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                }
-                )
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("EditorActivity.java", "Error adding document", e);
-                    }
-                });
-**/
-        // closes EditorActivity
-        //finish();
-
-        // Need to figure out how to actually let the user knows if it went through or not.
-        // can't have this pop up until the image is fully loaded.... and only then say it was submitted, idk why...
-        //makeText(this,"Submitted AAR", LENGTH_SHORT).show();
     }
 
+    // this is so the memory can be released once the activity is closed. Or else uploading pics wont work if backed out
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mBitmapPicture != null){
+            mBitmapPicture.recycle();
+            mBitmapPicture = null;
+        }
+    }
 }

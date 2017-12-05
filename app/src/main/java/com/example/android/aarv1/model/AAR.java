@@ -1,5 +1,7 @@
 package com.example.android.aarv1.model;
 
+import java.util.Date;
+
 /**
  * Created by Dillon on 12/1/2017.
  */
@@ -8,24 +10,43 @@ public class AAR {
 
     private String category;
     private String title;
-    private String good;
-    private String bad;
+    private String description;
+    private String cause;
     private String recommendations;
     private String location;
     private String photo;
+    private Date timeStamp; // is this the right timestamp?? I think so. might be ojbect timestamp?? instead of date.
     private int upVotes;
     private int downVotes;
 
+    // firebase requires you to have object with no calls in it.
     public AAR() {}
 
-    public AAR(String category, String title, String good, String bad, String recommendations, String location, String photo, int upVotes, int downVotes){
+    // create object, with place for photo
+    public AAR(String category, String title, String description, String cause,
+               String recommendations, String location, String photo, Date timeStamp, int upVotes, int downVotes){
         this.category = category;
         this.title = title;
-        this.good = good;
-        this.bad = bad;
+        this.description = description;
+        this.cause = cause;
         this.recommendations = recommendations;
         this.location = location;
         this.photo = photo;
+        this.timeStamp = timeStamp;
+        this.upVotes = upVotes;
+        this.downVotes = downVotes;
+    }
+
+    // create object, without place for photo
+    public AAR(String category, String title, String description, String cause,
+               String recommendations, String location, Date timeStamp, int upVotes, int downVotes){
+        this.category = category;
+        this.title = title;
+        this.description = description;
+        this.cause = cause;
+        this.recommendations = recommendations;
+        this.location = location;
+        this.timeStamp = timeStamp;
         this.upVotes = upVotes;
         this.downVotes = downVotes;
     }
@@ -38,13 +59,13 @@ public class AAR {
 
     public void setTitle(String title) {this.title = title;}
 
-    public String getGood() {return good;}
+    public String getDescription() {return description;}
 
-    public void setGood( String good) {this.good = good;}
+    public void setDescription( String description) {this.description= description;}
 
-    public String getBad() { return bad;}
+    public String getCause() { return cause;}
 
-    public void setBad( String bad) {this.bad = bad;}
+    public void setCause( String cause) {this.cause = cause;}
 
     public String getRecommendations() {return recommendations;}
 
@@ -61,6 +82,10 @@ public class AAR {
     public void setPhoto(String photo) {
         this.photo = photo;
     }
+
+    public Date getTimeStamp() {return timeStamp;}
+
+    public void setTimeStamp(Date timeStamp) {this.timeStamp = timeStamp;}
 
     public int getUpVotes() {return upVotes;}
 

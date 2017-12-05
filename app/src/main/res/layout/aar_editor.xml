@@ -130,7 +130,8 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Recommendations: " />
+            android:text="Recommendations: "
+            />
 
         <EditText
             android:id="@+id/edit_aar_recommendations"
@@ -173,6 +174,7 @@
         >
 
         <TextView
+            android:id="@+id/photo_picker_TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add an image (optional):"
@@ -184,7 +186,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@android:drawable/ic_menu_gallery"
-            android:paddingLeft="8dp"/>
+            android:layout_marginLeft="24dp"/>
 
     </LinearLayout>
 
