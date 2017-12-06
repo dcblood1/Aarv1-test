@@ -6,20 +6,15 @@
     android:layout_height="match_parent"
     tools:context="com.example.android.aarv1.MainActivity">
 
-    <TextView
-        android:id="@+id/main_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-
     <!-- Main Restaurants recycler -->
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_restaurants"
+        android:id="@+id/recycler_aars"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/main_text_view"
         android:background="@android:color/white"
-        tools:listitem="@layout/aar_item" />
+        tools:listitem="@layout/aar_item"
+
+        />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
