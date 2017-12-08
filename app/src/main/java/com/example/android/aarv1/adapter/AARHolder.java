@@ -1,6 +1,7 @@
 package com.example.android.aarv1.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -18,7 +19,7 @@ import butterknife.ButterKnife;
  * RecyclerView Holder
  */
 
-public class AARHolder extends RecyclerView.ViewHolder {
+public class AARHolder extends RecyclerView.ViewHolder{
 
     @BindView(R.id.aar_item_image)
     ImageView imageView;
@@ -47,6 +48,7 @@ public class AARHolder extends RecyclerView.ViewHolder {
     public AARHolder(View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
+
     }
 
     // don't know if this is the correct thing to do... using AAR... but we'll dam sure try
@@ -67,6 +69,23 @@ public class AARHolder extends RecyclerView.ViewHolder {
                 .load(aar.getPhoto())
                 .into(imageView);
 
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = getAdapterPosition();
+                Log.v("AARHolder.java","you clicked here : " + position);
+            }
+        });
 
     }
+
+
+
+
+
+    //an abstract is needed for the bindView
+    public void onClick(Object item) {
+        // an abstract is needed for the bindView in MainActivity
+    }
+
 }

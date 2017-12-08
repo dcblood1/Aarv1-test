@@ -1,11 +1,15 @@
 package com.example.android.aarv1.model;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
 import java.util.Date;
 
 /**
  * Created by Dillon on 12/1/2017.
  */
 
+
+@IgnoreExtraProperties
 public class AAR {
 
     private String category;

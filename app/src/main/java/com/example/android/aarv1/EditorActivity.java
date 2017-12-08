@@ -39,6 +39,8 @@ import java.util.Date;
 
 public class EditorActivity extends AppCompatActivity{
 
+    private static final String TAG = "EditorActivity";
+
     // EditText fields from the aar_editor.xml layout
     private EditText mTitleEditText;
     private EditText mDescriptionEditText;
@@ -82,6 +84,7 @@ public class EditorActivity extends AppCompatActivity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.aar_editor);
+        Log.v("EditorActivity.java","onCreate being called in Editor Activity:");
 
         pd = new ProgressDialog(this);
         pd.setMessage("Uploading... please wait");
@@ -319,10 +322,21 @@ public class EditorActivity extends AppCompatActivity{
     // this is so the memory can be released once the activity is closed. Or else uploading pics wont work if backed out
     @Override
     protected void onDestroy() {
+        Log.v(TAG,"onDestroy being called:");
         super.onDestroy();
         if (mBitmapPicture != null){
             mBitmapPicture.recycle();
             mBitmapPicture = null;
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        Log.v(TAG,"onBackPressed in Editor activity: ");
+        super.onBackPressed();
+        finish();
+    }
+
+
+
 }

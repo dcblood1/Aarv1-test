@@ -2,7 +2,7 @@ package com.example.android.aarv1;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,19 +11,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.android.aarv1.adapter.AARHolder;
 import com.example.android.aarv1.model.AAR;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -33,35 +30,43 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     // Access a Cloud Firestore instance from your Activity
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseFirestore db;
+    private FirestoreRecyclerAdapter adapter;
+    LinearLayoutManager mLinearLayoutManager;
 
-    CollectionReference collectionRef = db.collection("aars");
 
-    // Document Reference grabs a single document
-    DocumentReference docRef = db.collection("aars").document("bU2QmGtG6hCTfpkUJB5I");
+    static {
+        //helps me see what the f is going on maybe
+        FirebaseFirestore.setLoggingEnabled(true);
+    }
+
+
+    //recycler view state
+    private final String KEY_RECYCLER_STATE = "recycler_state";
+    private static Bundle mBundleRecyclerViewState;
+    private static Parcelable mListState;
 
     // query the firestore db
-    Query query = db
-            .collection("aars")
-    .orderBy("timeStamp", Query.Direction.DESCENDING)
-    .limit(50);
-
-    Query query2 = db.collection("aars").orderBy("timeStamp", Query.Direction.ASCENDING);
+    private Query mQuery;
 
     @BindView(R.id.recycler_aars)
     RecyclerView mAarsRecycler;
 
+    @BindView(R.id.empty_text_view)
+    TextView emptyTextView;
+
+    @BindView(R.id.progress_bar_view)
+    ProgressBar prograssBarView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // dont know what this does...
         ButterKnife.bind(this);
 
-        mAarsRecycler.setHasFixedSize(true);
-        mAarsRecycler.setLayoutManager(new LinearLayoutManager(this));
-
+        Log.v(TAG,("OnCreate being called here:"));
+        init();
+        getAars();
 
         // Set up FAB to open editorActivity (incoming)
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -73,76 +78,78 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Just try to pull data any way that you can.
-        // I need to grab data and turn it back into a custom class...
-        Log.v("MainActivity.java", "collectionRef = " + collectionRef);
 
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document != null) {
-                        Log.v("MainActivity.java", "document: " + document.exists());
-                    } else {
-                        Log.v("MainActivity.java", "no document exists");
-                    }
-                } else {
-                    Log.v("MainActivity.java", "get failed with: ", task.getException());
-                }
-            }
-        });
 
-        // this grabs all of the aars in the db, but it does it in real time, need to do async task?
-        collectionRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (DocumentSnapshot document : task.getResult()) {
-                        Log.v("MainActivity.java", document.getId() + " => " + document.getData());
-                    }
-                } else {
-                    Log.v("MainActivity.java", "Error getting documents", task.getException());
-                }
-            }
-        });
+
 
     };// end onCreate()
 
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        attachRecyclerViewAdapter();
+    protected void init(){
+        //set new LinearLayoutManager, attach recyclerView to layoutManager, then initialize firestore
+        mLinearLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
+        mAarsRecycler.setLayoutManager(mLinearLayoutManager);
+        db = FirebaseFirestore.getInstance();
     }
 
-    private void attachRecyclerViewAdapter() {
-        final RecyclerView.Adapter adapter = newAdapter();
-        mAarsRecycler.setAdapter(adapter);
-    }
+    private void getAars(){
+        mQuery = db.collection("aars");
 
-    protected RecyclerView.Adapter newAdapter() {
-        FirestoreRecyclerOptions<AAR> options =
-                new FirestoreRecyclerOptions.Builder<AAR>()
-                        .setQuery(query, AAR.class)
-                        .setLifecycleOwner(this)
-                        .build();
+        FirestoreRecyclerOptions<AAR> response = new FirestoreRecyclerOptions.Builder<AAR>()
+                .setQuery(mQuery, AAR.class)
+                .setLifecycleOwner(this)
+                .build();
 
-        Log.v(TAG,"this is the query: " + query);
-
-        return new FirestoreRecyclerAdapter<AAR, AARHolder>(options) {
-            @Override
-            public AARHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                return new AARHolder(LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.aar_item, parent, false));
-            }
-
+        adapter = new FirestoreRecyclerAdapter<AAR, AARHolder>(response) {
             @Override
             protected void onBindViewHolder(AARHolder holder, int position, AAR model) {
                 holder.bind(model);
+
+                Log.v(TAG,"adapter.getItem(position) : " + adapter.getItem(position));
+                Log.v(TAG,"holder.getAdapterPosition(): " + holder.getAdapterPosition());
+
+                holder.onClick(adapter.getItem(position));
+
+
+            }
+
+            @Override
+            public AARHolder onCreateViewHolder(ViewGroup group, int viewType) {
+                View view = LayoutInflater.from(group.getContext())
+                        .inflate(R.layout.aar_item, group, false);
+
+                return new AARHolder(view);
+            }
+
+            @Override
+            public void onError(FirebaseFirestoreException e) {
+                Log.e("error",e.getMessage());
+                emptyTextView.setText("Some error occured");
+            }
+
+            @Override
+            public void onDataChanged() {
+                super.onDataChanged();
+
+                if (getItemCount() == 0) {
+                    mAarsRecycler.setVisibility(View.GONE);
+                    emptyTextView.setVisibility(View.VISIBLE);
+                } else{
+                    mAarsRecycler.setVisibility(View.VISIBLE);
+                    emptyTextView.setVisibility(View.GONE);
+                    prograssBarView.setVisibility(View.GONE);
+                }
             }
         };
+
+        adapter.notifyDataSetChanged();
+        mAarsRecycler.setAdapter(adapter);
     }
+
+    //can use Butterknife here to set up buttons for on click
+    //@OnClick()
+
+
+
 
 }
 
