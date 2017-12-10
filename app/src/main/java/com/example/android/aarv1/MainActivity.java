@@ -8,16 +8,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.android.aarv1.adapter.AARHolder;
+import com.example.android.aarv1.adapter.AarAdapter;
 import com.example.android.aarv1.model.AAR;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
@@ -25,18 +25,19 @@ import com.google.firebase.firestore.Query;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AarAdapter.OnAarSelectedListener {
 
     private static final String TAG = "MainActivity";
 
     // Access a Cloud Firestore instance from your Activity
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter adapter;
+    private AarAdapter mAarAdapter; // the testing aar
     LinearLayoutManager mLinearLayoutManager;
 
 
     static {
-        //helps me see what the f is going on maybe
+        //helps me see what the f is going on maybe in the firestore
         FirebaseFirestore.setLoggingEnabled(true);
     }
 
@@ -78,10 +79,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
     };// end onCreate()
 
     protected void init(){
@@ -91,45 +88,34 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
     }
 
+    // this is called in the create method.
     private void getAars(){
+        // grab the initial query of Firestore Collection "aars"
         mQuery = db.collection("aars");
 
+        // this sets the opions of
         FirestoreRecyclerOptions<AAR> response = new FirestoreRecyclerOptions.Builder<AAR>()
                 .setQuery(mQuery, AAR.class)
                 .setLifecycleOwner(this)
                 .build();
 
-        adapter = new FirestoreRecyclerAdapter<AAR, AARHolder>(response) {
-            @Override
-            protected void onBindViewHolder(AARHolder holder, int position, AAR model) {
-                holder.bind(model);
+        // create new AarAdapter, taking in the Query, the Firestore options(response), and the listener for the onClick
+        mAarAdapter = new AarAdapter(mQuery,response, this){
 
-                Log.v(TAG,"adapter.getItem(position) : " + adapter.getItem(position));
-                Log.v(TAG,"holder.getAdapterPosition(): " + holder.getAdapterPosition());
-
-                holder.onClick(adapter.getItem(position));
-
-
-            }
-
-            @Override
-            public AARHolder onCreateViewHolder(ViewGroup group, int viewType) {
-                View view = LayoutInflater.from(group.getContext())
-                        .inflate(R.layout.aar_item, group, false);
-
-                return new AARHolder(view);
-            }
-
+            // in case of an error, it lets the user know something happened instead of showing a blank box
             @Override
             public void onError(FirebaseFirestoreException e) {
+                super.onError(e);
                 Log.e("error",e.getMessage());
                 emptyTextView.setText("Some error occured");
             }
 
+            // this removes the empty text box, removes the
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
 
+                //if the item count is 0 in the adapter, then it sets an empty text view, or vice versa
                 if (getItemCount() == 0) {
                     mAarsRecycler.setVisibility(View.GONE);
                     emptyTextView.setVisibility(View.VISIBLE);
@@ -139,15 +125,30 @@ public class MainActivity extends AppCompatActivity {
                     prograssBarView.setVisibility(View.GONE);
                 }
             }
-        };
+        };////////////////////
 
-        adapter.notifyDataSetChanged();
-        mAarsRecycler.setAdapter(adapter);
+        mAarAdapter.notifyDataSetChanged();
+        mAarsRecycler.setAdapter(mAarAdapter);
+        
     }
+
+
 
     //can use Butterknife here to set up buttons for on click
     //@OnClick()
+    public void onAarSelected(DocumentSnapshot aar) {
 
+        aar.toObject(AAR.class);
+        aar.getId();
+
+        Toast.makeText(this,"this is the text" + aar.getId(),Toast.LENGTH_SHORT).show();
+
+        // Go to the details page for the selected restaurant
+        //Intent intent = new Intent(this, RestaurantDetailActivity.class);
+        //intent.putExtra(RestaurantDetailActivity.KEY_RESTAURANT_ID, restaurant.getId());
+
+        //startActivity(intent);
+    }
 
 
 

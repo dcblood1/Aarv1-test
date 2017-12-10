@@ -301,8 +301,8 @@ public class EditorActivity extends AppCompatActivity{
                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                               @Override
                                               public void onSuccess(DocumentReference documentReference) {
-                                                  Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                                                  Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+                     Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
                                               }
                                           }
                     )

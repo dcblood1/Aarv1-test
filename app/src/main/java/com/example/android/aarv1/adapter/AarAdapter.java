@@ -1,7 +1,8 @@
 package com.example.android.aarv1.adapter;
 
+import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -13,6 +14,8 @@ import com.example.android.aarv1.R;
 import com.example.android.aarv1.model.AAR;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Query;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -21,29 +24,50 @@ import butterknife.ButterKnife;
  * Created by Dillon on 12/4/2017.
  */
 
-
-// might need to make a Firestore adapter with this?
+// RecyclerView Adapter for a list of aar's
 public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.AARHolder> {
+
+    // this method is called in main activity, then the void method is created in main activity
+    public interface OnAarSelectedListener {
+        void onAarSelected(DocumentSnapshot aar);
+    }
+
+    // creates a listener for the onclick
+    private OnAarSelectedListener mListener;
 
 
     /**
      * Create a new RecyclerView adapter that listens to a Firestore Query.  See
      * {@link FirestoreRecyclerOptions} for configuration options.
      *
+     * @param query
      * @param options
+     * @param listener
      */
-    public AarAdapter(FirestoreRecyclerOptions options) {
+    public AarAdapter(Query query, FirestoreRecyclerOptions options, OnAarSelectedListener listener) {
         super(options);
+        mListener = listener; // needed for the onclick listener
+
     }
 
     @Override
     protected void onBindViewHolder(AARHolder holder, int position, AarAdapter model) {
+        holder.bind(model.getSnapshots().getSnapshot(position), mListener);
 
     }
 
     @Override
+    public void onBindViewHolder(AARHolder holder, int position) {
+//        super.onBindViewHolder(holder, position);
+        holder.bind(getSnapshots().getSnapshot(position), mListener);
+    }
+
+    @Override
     public AARHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return null;
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.aar_item, parent, false);
+
+        return new AARHolder(view);
     }
 
     public class AARHolder extends RecyclerView.ViewHolder {
@@ -79,7 +103,13 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
         }
 
 
-        public void bind(AAR aar) {
+        //public void bind(AAR aar) {
+        public void bind(final DocumentSnapshot snapshot,
+                         final OnAarSelectedListener listener) {
+
+
+            AAR aar = snapshot.toObject(AAR.class);
+            Resources resources = itemView.getResources();
 
             titleTextView.setText(aar.getTitle());
             categoryTextView.setText(aar.getCategory());
@@ -98,11 +128,14 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    Log.v("AARHolder.java", "you clicked here : " + position);
+                    if (listener != null) {
+                        listener.onAarSelected(snapshot);
+                    }
+
                 }
             });
 
         }
+
     }
 }

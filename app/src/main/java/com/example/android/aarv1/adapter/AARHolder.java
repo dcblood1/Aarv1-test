@@ -3,7 +3,6 @@ package com.example.android.aarv1.adapter;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -39,11 +38,13 @@ public class AARHolder extends RecyclerView.ViewHolder{
     @BindView(R.id.down_votes)
     TextView downVotesTextView;
 
-    @BindView(R.id.up_vote_button)
-    Button upVoteButton;
 
-    @BindView(R.id.down_vote_button)
-    Button downVoteButton;
+    // Removed buttons, because I dont want them cluttering up the MainActivity View
+    //@BindView(R.id.up_vote_button)
+    //Button upVoteButton;
+
+    //@BindView(R.id.down_vote_button)
+    //Button downVoteButton;
 
     public AARHolder(View itemView) {
         super(itemView);
@@ -73,15 +74,14 @@ public class AARHolder extends RecyclerView.ViewHolder{
             @Override
             public void onClick(View v) {
                 int position = getAdapterPosition();
+                long itemId = getItemId();
                 Log.v("AARHolder.java","you clicked here : " + position);
+                Log.v("AARHolder.java","this is the itemID : " + itemId);
+
             }
         });
 
     }
-
-
-
-
 
     //an abstract is needed for the bindView
     public void onClick(Object item) {
