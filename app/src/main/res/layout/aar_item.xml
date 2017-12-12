@@ -20,8 +20,11 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/aar_item_image"
         android:maxLines="1"
-        android:text="Title"
+        android:text="Title11111111111111234"
         android:paddingLeft="8dp"
+        android:maxLength="20"
+        android:textColor="@android:color/black"
+        android:textSize="16dp"
         />
 
     <TextView
@@ -33,12 +36,13 @@
         android:maxLines="1"
         android:text="Drilling Topic"
         android:paddingLeft="8dp"
-        android:paddingTop="8dp"
+        android:textStyle="italic"
+        android:textColor="@android:color/darker_gray"
         />
 
     <TextView
         android:id="@+id/aar_recommendations"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/aar_item_image"
         android:layout_below="@id/aar_category_name"
@@ -46,15 +50,18 @@
         android:text="Recommendations: This is another line of text. This is another line of text This is another line of text. This is another line of text."
         android:paddingLeft="8dp"
         android:paddingTop="8dp"
+        android:textColor="@android:color/black"
         />
-    <Button
-        android:id="@+id/up_vote_button"
-        android:layout_width="36dp"
+
+    <TextView
+        android:id="@+id/up_vote_text"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="U"
+        android:text="Votes:"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/up_votes"
-        android:layout_toStartOf="@+id/up_votes" />
+        android:layout_toStartOf="@+id/up_votes"
+        />
 
     <TextView
         android:id="@+id/up_votes"
@@ -63,31 +70,7 @@
         android:maxLines="1"
         android:text="###"
         android:paddingLeft="8dp"
-        android:layout_toLeftOf="@+id/down_vote_button"
-        android:layout_toStartOf="@+id/down_vote_button"
-        />
-
-    <Button
-        android:id="@+id/down_vote_button"
-        android:layout_width="36dp"
-        android:layout_height="wrap_content"
-        android:text="D"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/down_votes"
-        android:layout_toStartOf="@+id/down_votes" />
-
-    <TextView
-        android:id="@+id/down_votes"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:maxLines="1"
-        android:text="###"
-        android:paddingLeft="8dp"
         />
-
-
-
 
 </RelativeLayout>

@@ -35,17 +35,6 @@ public class AARHolder extends RecyclerView.ViewHolder{
     @BindView(R.id.up_votes)
     TextView upVotesTextView;
 
-    @BindView(R.id.down_votes)
-    TextView downVotesTextView;
-
-
-    // Removed buttons, because I dont want them cluttering up the MainActivity View
-    //@BindView(R.id.up_vote_button)
-    //Button upVoteButton;
-
-    //@BindView(R.id.down_vote_button)
-    //Button downVoteButton;
-
     public AARHolder(View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
@@ -60,10 +49,6 @@ public class AARHolder extends RecyclerView.ViewHolder{
         categoryTextView.setText(aar.getCategory());
         recommendationsTextView.setText(aar.getRecommendations());
 
-
-// this doesn't work right now becuase it is trying to set text with an int
-//        upVotesTextView.setText(aar.getUpVotes());
-//        downVotesTextView.setText(aar.getDownVotes());
 
         // Load aar image into imageView
         Glide.with(imageView.getContext())

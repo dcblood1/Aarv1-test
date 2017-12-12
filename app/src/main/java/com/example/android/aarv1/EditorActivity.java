@@ -30,6 +30,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -209,7 +210,8 @@ public class EditorActivity extends AppCompatActivity{
         final String hasLocation = locationEditText.getText().toString();
 
         // gets the current date and time (Sat Dec 02 00:04:26 EST 2017)
-        final Date hasTimeStamp= Calendar.getInstance().getTime();
+        Date hasTimeStamp= Calendar.getInstance().getTime();
+        final String hasFormattedDate = formatDate(hasTimeStamp);
 
         Log.v("EditorActivity.java", "filePath before Map: " + filePath);
 
@@ -240,7 +242,7 @@ public class EditorActivity extends AppCompatActivity{
                     aar.setCause(hasCause);
                     aar.setRecommendations(hasRecommendations);
                     aar.setLocation(hasLocation);
-                    aar.setTimeStamp(hasTimeStamp);
+                    aar.setDate(hasFormattedDate);
                     aar.setUpVotes(mUpVotes);
                     aar.setDownVotes(mDownVotes);
                     aar.setPhoto(mDownloadUrl);
@@ -291,9 +293,9 @@ public class EditorActivity extends AppCompatActivity{
             aar.setCause(hasCause);
             aar.setRecommendations(hasRecommendations);
             aar.setLocation(hasLocation);
-            aar.setTimeStamp(hasTimeStamp);
             aar.setUpVotes(mUpVotes);
             aar.setDownVotes(mDownVotes);
+            aar.setDate(hasFormattedDate);
 
             // Add a new document with a generated ID and pass into the Firebase Storage
             db.collection("aars")
@@ -317,6 +319,14 @@ public class EditorActivity extends AppCompatActivity{
             finish();
         }
 
+    }
+
+    /**
+     * Return the formatted date string (i.e. "Mar 3, 1984") from a Date object.
+     */
+    private String formatDate(Date dateObject) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("LLL dd, yyyy");
+        return dateFormat.format(dateObject);
     }
 
     // this is so the memory can be released once the activity is closed. Or else uploading pics wont work if backed out

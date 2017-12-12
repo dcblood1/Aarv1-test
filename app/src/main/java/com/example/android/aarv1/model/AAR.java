@@ -2,8 +2,6 @@ package com.example.android.aarv1.model;
 
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
-import java.util.Date;
-
 /**
  * Created by Dillon on 12/1/2017.
  */
@@ -19,7 +17,7 @@ public class AAR {
     private String recommendations;
     private String location;
     private String photo;
-    private Date timeStamp; // is this the right timestamp?? I think so. might be ojbect timestamp?? instead of date.
+    private String date;
     private int upVotes;
     private int downVotes;
 
@@ -28,7 +26,7 @@ public class AAR {
 
     // create object, with place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, String photo, Date timeStamp, int upVotes, int downVotes){
+               String recommendations, String location, String photo, int upVotes, int downVotes, String date){
         this.category = category;
         this.title = title;
         this.description = description;
@@ -36,23 +34,23 @@ public class AAR {
         this.recommendations = recommendations;
         this.location = location;
         this.photo = photo;
-        this.timeStamp = timeStamp;
         this.upVotes = upVotes;
         this.downVotes = downVotes;
+        this.date = date;
     }
 
     // create object, without place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, Date timeStamp, int upVotes, int downVotes){
+               String recommendations, String location, int upVotes, int downVotes, String date){
         this.category = category;
         this.title = title;
         this.description = description;
         this.cause = cause;
         this.recommendations = recommendations;
         this.location = location;
-        this.timeStamp = timeStamp;
         this.upVotes = upVotes;
         this.downVotes = downVotes;
+        this.date = date;
     }
 
     public String getCategory() {return category;}
@@ -87,10 +85,6 @@ public class AAR {
         this.photo = photo;
     }
 
-    public Date getTimeStamp() {return timeStamp;}
-
-    public void setTimeStamp(Date timeStamp) {this.timeStamp = timeStamp;}
-
     public int getUpVotes() {return upVotes;}
 
     public void setUpVotes(int upVotes) {this.upVotes = upVotes;}
@@ -98,5 +92,9 @@ public class AAR {
     public int getDownVotes() {return downVotes;}
 
     public void setDownVotes(int downVotes) {this.downVotes = downVotes;}
+
+    public String getDate() {return date;}
+
+    public void setDate(String date) {this.date = date;}
 
 }

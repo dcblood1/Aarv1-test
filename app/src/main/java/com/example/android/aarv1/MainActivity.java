@@ -2,7 +2,6 @@ package com.example.android.aarv1;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -41,11 +40,6 @@ public class MainActivity extends AppCompatActivity implements AarAdapter.OnAarS
         FirebaseFirestore.setLoggingEnabled(true);
     }
 
-
-    //recycler view state
-    private final String KEY_RECYCLER_STATE = "recycler_state";
-    private static Bundle mBundleRecyclerViewState;
-    private static Parcelable mListState;
 
     // query the firestore db
     private Query mQuery;
@@ -110,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements AarAdapter.OnAarS
                 emptyTextView.setText("Some error occured");
             }
 
-            // this removes the empty text box, removes the
+            // this removes the empty text box
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
@@ -127,30 +121,34 @@ public class MainActivity extends AppCompatActivity implements AarAdapter.OnAarS
             }
         };////////////////////
 
+        // notifyDataSetChanged is in a standard recyclerView, does it notify us if something changes?
         mAarAdapter.notifyDataSetChanged();
+        // sets the RecyclerView to our current adapter.
         mAarsRecycler.setAdapter(mAarAdapter);
-        
+
     }
 
 
 
     //can use Butterknife here to set up buttons for on click
     //@OnClick()
+
+
+
+
+    // if the aar is selected, returns the appropriate data
     public void onAarSelected(DocumentSnapshot aar) {
 
-        aar.toObject(AAR.class);
-        aar.getId();
-
+        aar.toObject(AAR.class); // not sure what this does...
+        Log.v(TAG,"idk what : " + aar.toObject(AAR.class));
         Toast.makeText(this,"this is the text" + aar.getId(),Toast.LENGTH_SHORT).show();
 
-        // Go to the details page for the selected restaurant
-        //Intent intent = new Intent(this, RestaurantDetailActivity.class);
-        //intent.putExtra(RestaurantDetailActivity.KEY_RESTAURANT_ID, restaurant.getId());
+        // Go to the details page of the selected aar, sending aar snapshow ID
+        Intent detail_intent = new Intent(this, AarDetailActivity.class);
+        detail_intent.putExtra(AarDetailActivity.KEY_AAR_ID, aar.getId());
 
-        //startActivity(intent);
+        startActivity(detail_intent);
     }
-
-
 
 }
 

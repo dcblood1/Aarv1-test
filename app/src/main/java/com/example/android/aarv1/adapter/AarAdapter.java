@@ -5,7 +5,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -87,21 +86,14 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
         @BindView(R.id.up_votes)
         TextView upVotesTextView;
 
-        @BindView(R.id.down_votes)
-        TextView downVotesTextView;
+        @BindView(R.id.up_vote_text)
+        TextView upVotesText;
 
-        @BindView(R.id.up_vote_button)
-        Button upVoteButton;
-
-        @BindView(R.id.down_vote_button)
-        Button downVoteButton;
 
         public AARHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-
         }
-
 
         //public void bind(AAR aar) {
         public void bind(final DocumentSnapshot snapshot,
@@ -114,13 +106,9 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
             titleTextView.setText(aar.getTitle());
             categoryTextView.setText(aar.getCategory());
             recommendationsTextView.setText(aar.getRecommendations());
+            upVotesTextView.setText(resources.getString(R.string.fmt_up_votes,aar.getUpVotes()));
 
-
-// this doesn't work right now becuase it is trying to set text with an int
-//        upVotesTextView.setText(aar.getUpVotes());
-//        downVotesTextView.setText(aar.getDownVotes());
-
-            // Load aar image into imageView
+            // Load aar image into imageView, using Glide 3rd party library
             Glide.with(imageView.getContext())
                     .load(aar.getPhoto())
                     .into(imageView);
@@ -131,10 +119,8 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
                     if (listener != null) {
                         listener.onAarSelected(snapshot);
                     }
-
                 }
             });
-
         }
 
     }

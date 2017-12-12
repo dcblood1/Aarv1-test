@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">AARV1</string>
+
+
+
+    <string name="fmt_up_votes" translatable="false">%d</string>
+    <string name="fmt_time" translatable="false">%s</string>
 </resources>

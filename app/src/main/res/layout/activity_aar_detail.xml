@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <RelativeLayout
+        android:id="@+id/aar_top_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/aar_image_view"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/food_1"
+            />
+
+        <!-- Back button -->
+        <ImageView
+            android:id="@+id/aar_back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_close_white_24px" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/aar_bottom_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/aar_top_card"
+        android:layout_margin="8dp"
+        >
+
+        <TextView
+            android:id="@+id/title_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="24dp"
+            android:paddingBottom="8dp"
+            android:textColor="@android:color/black"
+            android:text="Title"
+            />
+
+        <TextView
+            android:id="@+id/category_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title_text_view"
+            android:textSize="16dp"
+            android:textStyle="italic"
+            android:text="Category"
+
+            />
+        <TextView
+            android:id="@+id/divider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:layout_toRightOf="@+id/category_text_view"
+            android:layout_below="@id/title_text_view"
+            />
+
+        <TextView
+            android:id="@+id/location_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title_text_view"
+            android:layout_toRightOf="@id/divider"
+            android:textSize="16dp"
+            android:text="LOCATION"
+
+            />
+
+        <TextView
+            android:id="@+id/description_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/location_text_view"
+            style="@style/DetailNameStyle"
+            android:paddingTop="8dp"
+            android:text="Description of Event: "
+            />
+
+
+        <TextView
+            android:id="@+id/description_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Description text here"
+            android:layout_below="@+id/description_name"
+            style="@style/DetailTextStyle"
+
+            />
+
+        <TextView
+            android:id="@+id/cause_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/description_text_view"
+            style="@style/DetailNameStyle"
+            android:text="Root Cause: "
+            />
+
+        <TextView
+            android:id="@+id/cause_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cause_name"
+            style="@style/DetailTextStyle"
+            android:text="Root Cause text here"
+            />
+
+        <TextView
+            android:id="@+id/recommendations_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cause_text_view"
+            style="@style/DetailNameStyle"
+            android:text="Recommendations: "
+            />
+
+        <TextView
+            android:id="@+id/recommendations_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/recommendations_name"
+            style="@style/DetailTextStyle"
+            android:text="Recommendations"
+            />
+
+        <TextView
+            android:id="@+id/time_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/up_vote_button"
+            style="@style/DetailNameStyle"
+            android:text="Date AAR submitted: "
+            />
+
+        <TextView
+            android:id="@+id/time_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/up_vote_button"
+            android:layout_toRightOf="@id/time_name"
+            style="@style/DetailTextStyle"
+            android:text="Time created"
+            />
+
+        <Button
+            android:id="@+id/up_vote_button"
+            android:layout_width="88dp"
+            android:layout_height="48dp"
+            android:layout_alignParentBottom="true"
+            android:text="Up Vote!"
+            />
+
+        <TextView
+            android:id="@+id/up_votes_view"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@id/up_vote_button"
+            android:text="###"
+            />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
