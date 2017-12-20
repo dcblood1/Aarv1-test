@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:style="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/filters_form"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="20sp"
+        android:text="Filter"
+        />
+
+    <!-- Search -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon_search"
+            style="@style/AppTheme.FilterIcon"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_fastfood_white_24dp"
+            android:tint="@android:color/darker_gray"
+            />
+
+        <EditText
+            android:id="@+id/search_function_view"
+            style="@style/AppTheme.FilterSearch"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/icon_search"
+            android:hint="Type Search here"
+            />
+
+    </RelativeLayout>
+
+    <!-- Categories -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon_category"
+            style="@style/AppTheme.FilterIcon"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_fastfood_white_24dp"
+            android:tint="@android:color/darker_gray"
+            />
+
+        <Spinner
+            android:id="@+id/spinner_category"
+            style="@style/AppTheme.FilterSpinner"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/icon_category"
+            android:entries="@array/drilling_categories"
+            />
+
+    </RelativeLayout>
+
+    <!-- Location -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon_location"
+            style="@style/AppTheme.FilterIcon"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_fastfood_white_24dp"
+            android:tint="@android:color/darker_gray" />
+
+        <Spinner
+            android:id="@+id/spinner_location"
+            style="@style/AppTheme.FilterSpinner"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/icon_location"
+            android:entries="@array/drilling_locations" />
+
+    </RelativeLayout>
+
+    <!-- Sort By -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon_sort"
+            style="@style/AppTheme.FilterIcon"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_fastfood_white_24dp"
+            android:tint="@android:color/darker_gray" />
+
+        <Spinner
+            android:id="@+id/spinner_sort"
+            style="@style/AppTheme.FilterSpinner"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/icon_sort"
+            android:entries="@array/sort_by" />
+
+    </RelativeLayout>
+
+    <!-- Cancel and apply buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/button_cancel"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancel"
+            android:textColor="@android:color/darker_gray"
+            android:theme="@style/ThemeOverlay.FilterButton" />
+
+
+        <Button
+            android:id="@+id/button_search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/apply"
+            android:theme="@style/ThemeOverlay.FilterButton" />
+
+
+    </LinearLayout>
+</LinearLayout>

@@ -1,8 +1,56 @@
 <resources>
-    <string name="app_name">AARV1</string>
+    <string name="app_name">After Action Review</string>
 
 
 
     <string name="fmt_up_votes" translatable="false">%d</string>
     <string name="fmt_time" translatable="false">%s</string>
+    <string name="fmt_date" translatable="false">%s</string>
+
+    <string name="all_aars">All AARs</string>
+
+    <string name="value_any_category">All Categories</string>
+    <string name="value_any_location">All Locations</string>
+    <string name="value_any_votes">Popularity</string>
+
+    <!-- Types of categories in drilling to sort by-->
+    <string-array name="drilling_categories">
+        <item>@string/value_any_category</item>
+        <item>Rig Move</item>
+        <item>Drilling</item>
+        <item>Casing</item>
+        <item>Cementing</item>
+        <item>Skidding</item>
+    </string-array>
+
+    <!-- Locations in drilling to sort by-->
+    <string-array name="drilling_locations">
+        <item>@string/value_any_location</item>
+        <item>EAGLEFORD</item>
+        <item>HAYNESVILLE</item>
+        <item>PERMIAN</item>
+    </string-array>
+
+    <string name="sort_by_most_recent">Sort by Most Recent</string>
+    <string name="sort_by_oldest">Sort by Oldest</string>
+    <string name="sort_by_votes">Sort by Votes</string>
+    <string name="sort_by_views">Sort by Views</string>
+
+    <string name="sorted_by_most_recent">Sorted by Most Recent</string>
+    <string name="sorted_by_oldest">Sorted by Oldest</string>
+    <string name="sorted_by_votes">Sorted by Votes</string>
+    <string name="sorted_by_views">Sorted by Views</string>
+
+
+    <!-- Ways you can sort aars -->
+    <string-array name="sort_by">
+        <item>@string/sort_by_most_recent</item>
+        <item>@string/sort_by_oldest</item>
+        <item>@string/sort_by_votes</item>
+        <item>@string/sort_by_views</item>
+    </string-array>
+
+    <string name="apply">Apply</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

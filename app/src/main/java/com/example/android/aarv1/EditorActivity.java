@@ -55,7 +55,7 @@ public class EditorActivity extends AppCompatActivity{
     private String mDownloadUrl;
     private TextView mPhotoPickerTextView;
     private int mUpVotes = 0;
-    private int mDownVotes = 0;
+    private int mViews = 0;
     Uri filePath;
     ProgressDialog pd;
     // Constant for the photo picker?? idk why this is needed.
@@ -244,7 +244,7 @@ public class EditorActivity extends AppCompatActivity{
                     aar.setLocation(hasLocation);
                     aar.setDate(hasFormattedDate);
                     aar.setUpVotes(mUpVotes);
-                    aar.setDownVotes(mDownVotes);
+                    aar.setViews(mViews);
                     aar.setPhoto(mDownloadUrl);
 
 
@@ -294,7 +294,7 @@ public class EditorActivity extends AppCompatActivity{
             aar.setRecommendations(hasRecommendations);
             aar.setLocation(hasLocation);
             aar.setUpVotes(mUpVotes);
-            aar.setDownVotes(mDownVotes);
+            aar.setViews(mViews);
             aar.setDate(hasFormattedDate);
 
             // Add a new document with a generated ID and pass into the Firebase Storage

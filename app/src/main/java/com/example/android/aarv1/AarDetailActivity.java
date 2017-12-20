@@ -3,6 +3,7 @@ package com.example.android.aarv1;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -112,8 +113,6 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
 
     }
 
-
-
     // when the back button is pressed, it sends the user back to the previous page...
     @OnClick(R.id.aar_back_button)
     public void onBackArrowClicked(View view) {
@@ -121,43 +120,53 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     }
 
 
-    // this is for when a user clicks on the upVote button
-    @OnClick(R.id.up_vote_button)
-
-
-
-    private Task<Void> onUpVoteClicked(final DocumentReference aarRef){
-
-        final DocumentReference upVoteRef = mAarRef; // will this know the correct document?? or will it stay final through all...?
-        //final DocumentReference upVoteRef = aarRef.collection("aars").document(); this is what they have...
+    // supporting method for adding upVote to an AAR
+    private Task<Void> addUpVote(final DocumentReference aarRef){
 
         return mFirestore.runTransaction(new Transaction.Function<Void>() {
             @Nullable
             @Override
             public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
-                DocumentSnapshot snapshot = transaction.get(upVoteRef);
-                Log.v(TAG,"this is the snapShot" + snapshot);
 
-                double newUpVote = snapshot.getDouble("upVotes") + 1;
-                transaction.update(upVoteRef, "upVotes",newUpVote);
+                AAR aar = transaction.get(aarRef).toObject(AAR.class);
 
-                //Success
+                // Compute new number of upVotes
+                int newUpVotes = aar.getUpVotes()+ 1;
+
+                // Set new restaurant info
+                aar.setUpVotes(newUpVotes);
+
+                // Commit to firestore
+                transaction.set(aarRef,aar);
+
                 return null;
             }
-        }).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Log.d(TAG," Transaction Success! ");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.w(TAG," Transaction Failure.",e);
-            }
         });
-
     }
 
+    // Adds an upvote
+    @OnClick(R.id.up_vote_button)
+    public void onUpVote(){
+        // In a transaction, add the new rating and update the aggregate totals
+        addUpVote(mAarRef)
+                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG,"addUpVote added");
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG,"addUpVote Fail",e);
+
+                        Snackbar.make(findViewById(android.R.id.content), "Failed to add vote",
+                                Snackbar.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // when the user clicks on the aar from the main page, event occurs to show detail view.
     @Override
     public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
         if (e != null) {
@@ -178,12 +187,15 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         mUpVotesTextView.setText(getString(R.string.fmt_up_votes,aar.getUpVotes()));
         mTimeView.setText(getString(R.string.fmt_time,aar.getDate()));
 
-        // Background image
-        Glide.with(mImageView.getContext())
-                .load(aar.getPhoto())
-                .into(mImageView);
-
+        // Background Image
+        if (aar.getPhoto() !=  null) {
+            Glide.with(mImageView.getContext())
+                    .load(aar.getPhoto())
+                    .into(mImageView);
+        } else {
+            Glide.with(mImageView.getContext())
+                    .load(R.drawable.food_1)
+                    .into(mImageView);
+        }
     }
-
-
 }

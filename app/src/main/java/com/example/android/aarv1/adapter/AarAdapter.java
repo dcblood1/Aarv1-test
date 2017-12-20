@@ -89,6 +89,9 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
         @BindView(R.id.up_vote_text)
         TextView upVotesText;
 
+        @BindView(R.id.date_text)
+        TextView dateText;
+
 
         public AARHolder(View itemView) {
             super(itemView);
@@ -107,11 +110,22 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
             categoryTextView.setText(aar.getCategory());
             recommendationsTextView.setText(aar.getRecommendations());
             upVotesTextView.setText(resources.getString(R.string.fmt_up_votes,aar.getUpVotes()));
+            dateText.setText(resources.getString(R.string.fmt_date, aar.getDate()));
+
+
 
             // Load aar image into imageView, using Glide 3rd party library
-            Glide.with(imageView.getContext())
-                    .load(aar.getPhoto())
-                    .into(imageView);
+            // need to add if aar.getPhoto() == null then do something else...
+
+            if (aar.getPhoto() !=  null) {
+                Glide.with(imageView.getContext())
+                        .load(aar.getPhoto())
+                        .into(imageView);
+            } else {
+                Glide.with(imageView.getContext())
+                        .load(R.drawable.food_1)
+                        .into(imageView);
+            }
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

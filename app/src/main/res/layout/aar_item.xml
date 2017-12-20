@@ -57,7 +57,7 @@
         android:id="@+id/up_vote_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Votes:"
+        android:text="Up Votes:"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/up_votes"
         android:layout_toStartOf="@+id/up_votes"
@@ -71,6 +71,16 @@
         android:text="###"
         android:paddingLeft="8dp"
         android:layout_alignParentRight="true"
+        />
+
+    <TextView
+        android:id="@+id/date_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/up_vote_text"
+        android:paddingLeft="8dp"
+        android:text="Date here"
         />
 
 </RelativeLayout>
