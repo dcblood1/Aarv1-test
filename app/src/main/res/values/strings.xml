@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">After Action Review</string>
 
-
-
     <string name="fmt_up_votes" translatable="false">%d</string>
     <string name="fmt_time" translatable="false">%s</string>
     <string name="fmt_date" translatable="false">%s</string>
@@ -14,21 +12,33 @@
     <string name="value_any_votes">Popularity</string>
 
     <!-- Types of categories in drilling to sort by-->
+    <string name = "rig_move">Rig Move</string>
+    <string name = "drilling">Drilling</string>
+    <string name = "casing">Casing</string>
+    <string name = "cementing">Cementing</string>
+    <string name = "skidding">Skidding</string>
+
+    <!-- Types of categories in drilling to sort by-->
     <string-array name="drilling_categories">
         <item>@string/value_any_category</item>
-        <item>Rig Move</item>
-        <item>Drilling</item>
-        <item>Casing</item>
-        <item>Cementing</item>
-        <item>Skidding</item>
+        <item>@string/rig_move</item>
+        <item>@string/drilling</item>
+        <item>@string/casing</item>
+        <item>@string/cementing</item>
+        <item>@string/skidding</item>
     </string-array>
 
-    <!-- Locations in drilling to sort by-->
+    <!-- Different location to sort by-->
+    <string name = "eagleford">EAGLEFORD</string>
+    <string name = "haynesville">HAYNESVILLE</string>
+    <string name = "permian">PERMIAN</string>
+
+    <!-- Locations to sort by-->
     <string-array name="drilling_locations">
         <item>@string/value_any_location</item>
-        <item>EAGLEFORD</item>
-        <item>HAYNESVILLE</item>
-        <item>PERMIAN</item>
+        <item>@string/eagleford</item>
+        <item>@string/haynesville</item>
+        <item>@string/permian</item>
     </string-array>
 
     <string name="sort_by_most_recent">Sort by Most Recent</string>

@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <ScrollView
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    tools:context=".EditorActivity"
+    >
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
@@ -29,15 +33,6 @@
             android:layout_height="wrap_content"
             android:text="Category: " />
 
-        <!--
-        <EditText
-            android:id="@+id/edit_aar_category"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="(ie: Drilling, casing, skidding...)"
-            android:inputType="textCapCharacters" />
-            -->
 
         <Spinner
             android:id="@+id/edit_aar_category_spinner"
@@ -128,7 +123,7 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_weight="1.2"
             android:layout_height="wrap_content"
             android:text="Recommendations: "
             />
@@ -147,16 +142,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_margin="8dp"
-        >
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Location or basin: " />
 
+        <!--
         <EditText
             android:id="@+id/edit_aar_location"
             android:layout_width="0dp"
@@ -165,7 +160,17 @@
             android:hint="(ie: eagleford, haynesville)"
             android:inputType="textCapCharacters"
             />
+            -->
+
+        <Spinner
+            android:id="@+id/edit_aar_location"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2">
+
+        </Spinner>
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

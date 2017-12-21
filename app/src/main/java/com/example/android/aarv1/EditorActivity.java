@@ -50,6 +50,7 @@ public class EditorActivity extends AppCompatActivity{
     private EditText mLocationEditText;
     private ImageButton mPhotoPickerButton;
     private Spinner mCategorySpinner;
+    private Spinner mLocationSpinner;
     private ImageView mSelectedImageView;
     private Bitmap mBitmapPicture;
     private String mDownloadUrl;
@@ -65,6 +66,7 @@ public class EditorActivity extends AppCompatActivity{
      * Category for Drilling.
      */
     private String mCategory = "";
+    private String mLocation = "";
 
     //// firebase instance variables
     private FirebaseStorage mFirebaseStorage;
@@ -99,9 +101,10 @@ public class EditorActivity extends AppCompatActivity{
         mDescriptionEditText = (EditText) findViewById(R.id.edit_aar_description);
         mCauseEditText= (EditText) findViewById(R.id.edit_aar_cause);
         mRecommendationsEditText = (EditText) findViewById(R.id.edit_aar_recommendations);
-        mLocationEditText = (EditText) findViewById(R.id.edit_aar_location);
+        //mLocationEditText = (EditText) findViewById(R.id.edit_aar_location);
         mPhotoPickerButton = (ImageButton) findViewById(R.id.photoPickerButton);
         mCategorySpinner = (Spinner) findViewById(R.id.edit_aar_category_spinner);
+        mLocationSpinner = (Spinner) findViewById(R.id.edit_aar_location);
         mSelectedImageView = (ImageView) findViewById(R.id.edit_aar_imageView);
         mPhotoPickerTextView = (TextView) findViewById(R.id.photo_picker_TextView);
 
@@ -151,7 +154,7 @@ public class EditorActivity extends AppCompatActivity{
             }
 
     /**
-     * Setup the dropdown spinner that allows the user to select the category of the AAR.
+     * Setup the dropdown spinner that allows the user to select the category of the AAR and the Location
      */
     private void setupSpinner() {
         // Create adapter for spinner. The list options are from the String array it will use
@@ -160,11 +163,18 @@ public class EditorActivity extends AppCompatActivity{
         ArrayAdapter categoryDrillingSpinnderAdapter = ArrayAdapter.createFromResource(this,
                 R.array.array_drilling_category_options, android.R.layout.simple_spinner_item);
 
+        ArrayAdapter locationSpinnerAdapter = ArrayAdapter.createFromResource(this,
+                R.array.array_location_options, android.R.layout.simple_spinner_item);
+
         // Specify dropdown layout style - simple list view with 1 item per line
         categoryDrillingSpinnderAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
 
+        locationSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
+
         // Apply the adapter to the spinner
         mCategorySpinner.setAdapter(categoryDrillingSpinnderAdapter);
+
+        mLocationSpinner.setAdapter(locationSpinnerAdapter);
 
         // Set the String mCategory equal to one of the following categories
         mCategorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -172,20 +182,42 @@ public class EditorActivity extends AppCompatActivity{
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals("Rig Move")) {
-                        mCategory = "Rig Move";
-                    } else if(selection.equals("Drilling")) {
-                        mCategory = "Drilling";
-                    } else if(selection.equals("Casing")) {
-                        mCategory = "Casing";
-                    } else if(selection.equals("Cementing")) {
-                        mCategory = "Cementing";
-                    } else if (selection.equals("Skidding"));
+                    if (selection.equals(getString(R.string.rig_move))) {
+                        mCategory = getString(R.string.rig_move);
+                    } else if(selection.equals(getString(R.string.drilling))) {
+                        mCategory = getString(R.string.drilling);
+                    } else if(selection.equals(getString(R.string.casing))) {
+                        mCategory = getString(R.string.casing);
+                    } else if(selection.equals(getString(R.string.cementing))) {
+                        mCategory = getString(R.string.cementing);
+                    } else if (selection.equals(getString(R.string.skidding)));
                 }
             }
 
             public void onNothingSelected(AdapterView<?> parent) {
                 mCategory = "Not Selected";
+            }
+        });
+
+        // Set the String equal to one of the following categories
+        mLocationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selection = (String) parent.getItemAtPosition(position);
+                if (!TextUtils.isEmpty(selection)) {
+                    if (selection.equals(getString(R.string.eagleford))){
+                        mLocation = getString(R.string.eagleford);
+                    } else if (selection.equals(getString(R.string.haynesville))) {
+                        mLocation = getString(R.string.haynesville);
+                    } else if(selection.equals(getString(R.string.permian))) {
+                        mLocation = getString(R.string.permian);
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { mLocation = "Not Selected";
+
             }
         });
     }
@@ -206,8 +238,8 @@ public class EditorActivity extends AppCompatActivity{
         EditText recommendationsEditText = (EditText) findViewById(R.id.edit_aar_recommendations);
         final String hasRecommendations = recommendationsEditText.getText().toString();
 
-        EditText locationEditText = (EditText) findViewById(R.id.edit_aar_location);
-        final String hasLocation = locationEditText.getText().toString();
+        //EditText locationEditText = (EditText) findViewById(R.id.edit_aar_location);
+        //final String hasLocation = locationEditText.getText().toString();
 
         // gets the current date and time (Sat Dec 02 00:04:26 EST 2017)
         Date hasTimeStamp= Calendar.getInstance().getTime();
@@ -241,7 +273,8 @@ public class EditorActivity extends AppCompatActivity{
                     aar.setDescription(hasDescription);
                     aar.setCause(hasCause);
                     aar.setRecommendations(hasRecommendations);
-                    aar.setLocation(hasLocation);
+                    //aar.setLocation(hasLocation);
+                    aar.setLocation(mLocation);
                     aar.setDate(hasFormattedDate);
                     aar.setUpVotes(mUpVotes);
                     aar.setViews(mViews);
@@ -292,7 +325,8 @@ public class EditorActivity extends AppCompatActivity{
             aar.setDescription(hasDescription);
             aar.setCause(hasCause);
             aar.setRecommendations(hasRecommendations);
-            aar.setLocation(hasLocation);
+            //aar.setLocation(hasLocation);
+            aar.setLocation(mLocation);
             aar.setUpVotes(mUpVotes);
             aar.setViews(mViews);
             aar.setDate(hasFormattedDate);
