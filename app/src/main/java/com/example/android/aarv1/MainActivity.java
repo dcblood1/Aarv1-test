@@ -12,6 +12,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,14 +21,20 @@ import android.widget.TextView;
 import com.example.android.aarv1.adapter.AarAdapter;
 import com.example.android.aarv1.model.AAR;
 import com.example.android.aarv1.viewmodel.MainActivityViewModel;
+import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Transaction;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,17 +45,26 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "MainActivity";
 
-    // Access a Cloud Firestore instance from your Activity
+    // RC (Request code) for user Sign in
+    public static final int RC_SIGN_IN = 1;
+
+    // Access a Cloud Firestore instance from your Activity, create the
     private FirebaseFirestore db;
     private AarAdapter mAarAdapter; // the testing aar
-    LinearLayoutManager mLinearLayoutManager;
+    private FilterDialogFragment mFilterDialog;
+    private MainActivityViewModel mViewModel;
+    private DocumentReference mAarRef;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+
 
     // limits the amount of aars we get back... want a limit?
     private static final int LIMIT = 50;
 
-    private FirebaseFirestore mFirestore;
+    // create global for Query
     private Query mQuery;
 
+    // Bind Views using Butterknife from activity_main.xml
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
@@ -66,11 +83,6 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.progress_bar_view)
     ProgressBar prograssBarView;
 
-    private FilterDialogFragment mFilterDialog;
-    private MainActivityViewModel mViewModel;
-    private DocumentReference mAarRef;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,9 +90,11 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
+        // initialize firebase authentication
+        mFirebaseAuth = FirebaseAuth.getInstance();
+
         // View model
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
-
 
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(true);
@@ -121,8 +135,6 @@ public class MainActivity extends AppCompatActivity
                 .setLifecycleOwner(this)
                 .build();
 
-        Log.v(TAG,"this is the response in getAars()" + response);
-
         // create new AarAdapter, taking in the Query, the Firestore options(response), and the listener for the onClick
         mAarAdapter = new AarAdapter(mQuery,response, this){
 
@@ -154,24 +166,24 @@ public class MainActivity extends AppCompatActivity
         };////////////////////
 
         // notifyDataSetChanged is in a standard recyclerView, does it notify us if something changes?
-        mAarAdapter.notifyDataSetChanged(); // is this needed??
+        mAarAdapter.notifyDataSetChanged();
 
-        Log.v(TAG,"this is the mAarAdapter in getAars()" + mAarAdapter);
-
-        mAarsRecycler.setLayoutManager(new LinearLayoutManager(this)); ////////// TEST ////////
-
+        mAarsRecycler.setLayoutManager(new LinearLayoutManager(this));
 
         // sets the RecyclerView to our current adapter.
         mAarsRecycler.setAdapter(mAarAdapter);
-
-
-        Log.v(TAG,"this is the mAarsRecycler in getAars()" + mAarsRecycler);
 
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        // Start sign in if necessary
+        if (shouldStartSignIn()) {
+            startSignIn();
+            return;
+        }
 
         // Apply filters
         onFilter(mViewModel.getFilters());
@@ -204,8 +216,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
     // if the aar is selected, returns the appropriate data. adds a view to the AAR transaction... on day
     public void onAarSelected(DocumentSnapshot aar) {
 
@@ -217,15 +227,13 @@ public class MainActivity extends AppCompatActivity
         detail_intent.putExtra(AarDetailActivity.KEY_AAR_ID, aar.getId());
 
         // Get reference to the aars
-        Log.v(TAG,"this is the aar.getId() = " + aar.getId());
         mAarRef = db.collection("aars").document(aar.getId());
 
-        // need to add the view here, right before it starts the next activity
+        // add view to the AAR
         addView(mAarRef);
 
         startActivity(detail_intent);
     }
-
 
 
     // for when the filter button is clicked on, pull up the fragment
@@ -286,6 +294,67 @@ public class MainActivity extends AppCompatActivity
         // Save filters
         mViewModel.setFilters(filters);
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            mViewModel.setIsSigningIn(false);
+
+            if (resultCode != RESULT_OK && shouldStartSignIn()) {
+                startSignIn();
+            }
+        }
+    }
+
+    private boolean shouldStartSignIn() {
+        return (!mViewModel.getIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
+    }
+
+    private void startSignIn() {
+        // Sign in with FirebaseUI
+        Intent intent = AuthUI.getInstance().createSignInIntentBuilder()
+                .setAvailableProviders(Collections.singletonList(
+                        new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build()))
+                .setIsSmartLockEnabled(false)
+                .build();
+
+
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
+        );
+
+        startActivityForResult(AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(false)
+                        .setAvailableProviders(providers)
+                        .build(),
+                        RC_SIGN_IN);
+
+
+
+        //startActivityForResult(intent, RC_SIGN_IN);
+        mViewModel.setIsSigningIn(true);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_sign_out:
+                AuthUI.getInstance().signOut(this);
+                startSignIn();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
 
