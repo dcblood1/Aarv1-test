@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
     // RC (Request code) for user Sign in
     public static final int RC_SIGN_IN = 1;
 
-    // Access a Cloud Firestore instance from your Activity, create the
+    // Access a Cloud Firestore instance from your Activity
     private FirebaseFirestore db;
     private AarAdapter mAarAdapter; // the testing aar
     private FilterDialogFragment mFilterDialog;

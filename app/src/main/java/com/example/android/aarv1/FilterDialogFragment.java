@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.android.aarv1.model.AAR;
@@ -24,6 +23,7 @@ import butterknife.OnClick;
 
 /**
  * Dialog Fragment containing filter form.
+ * a dialog fragment is one that is a pop up (floating)
  */
 
 public class FilterDialogFragment extends DialogFragment {
@@ -47,8 +47,8 @@ public class FilterDialogFragment extends DialogFragment {
     @BindView(R.id.spinner_sort)
     Spinner mSortSpinner;
 
-    @BindView(R.id.search_function_view)
-    EditText mSearchView;
+    //@BindView(R.id.search_function_view)
+    //EditText mSearchView;
 
     // declares the interface we set up above.
     private FilterListener mFilterListener;

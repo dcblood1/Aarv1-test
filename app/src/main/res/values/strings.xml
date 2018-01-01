@@ -12,11 +12,11 @@
     <string name="value_any_votes">Popularity</string>
 
     <!-- Types of categories in drilling to sort by-->
-    <string name = "rig_move">Rig Move</string>
-    <string name = "drilling">Drilling</string>
-    <string name = "casing">Casing</string>
-    <string name = "cementing">Cementing</string>
-    <string name = "skidding">Skidding</string>
+    <string name="rig_move">Rig Move</string>
+    <string name="drilling">Drilling</string>
+    <string name="casing">Casing</string>
+    <string name="cementing">Cementing</string>
+    <string name="skidding">Skidding</string>
 
     <!-- Types of categories in drilling to sort by-->
     <string-array name="drilling_categories">
@@ -29,9 +29,9 @@
     </string-array>
 
     <!-- Different location to sort by-->
-    <string name = "eagleford">EAGLEFORD</string>
-    <string name = "haynesville">HAYNESVILLE</string>
-    <string name = "permian">PERMIAN</string>
+    <string name="eagleford">EAGLEFORD</string>
+    <string name="haynesville">HAYNESVILLE</string>
+    <string name="permian">PERMIAN</string>
 
     <!-- Locations to sort by-->
     <string-array name="drilling_locations">
@@ -65,5 +65,9 @@
 
     <!-- Sign out -->
     <string name="sign_out">Sign Out</string>
+    <string name="title_activity_bottom_nav_test">BottomNavTest</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 
 </resources>

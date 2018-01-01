@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:padding="8dp"
-                android:src="@drawable/ic_filter_list_white_24px"
+                app:srcCompat="@drawable/ic_filter_list_white_24px"
                 android:tint="@android:color/darker_gray"
                 />
 
@@ -95,7 +95,7 @@
                 android:layout_centerVertical="true"
                 android:padding="8dp"
                 android:tint="@android:color/darker_gray"
-                android:src="@drawable/ic_close_white_24px"
+                app:srcCompat="@drawable/ic_close_white_24px"
                 />
 
         </RelativeLayout>
@@ -141,6 +141,6 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add_white_24px"/>
+        app:srcCompat="@drawable/ic_add_white_24px"/>
 
 </RelativeLayout>
