@@ -33,7 +33,6 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Transaction;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -314,12 +313,6 @@ public class MainActivity extends AppCompatActivity
 
     private void startSignIn() {
         // Sign in with FirebaseUI
-        Intent intent = AuthUI.getInstance().createSignInIntentBuilder()
-                .setAvailableProviders(Collections.singletonList(
-                        new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build()))
-                .setIsSmartLockEnabled(false)
-                .build();
-
 
         List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
@@ -333,9 +326,6 @@ public class MainActivity extends AppCompatActivity
                         .build(),
                         RC_SIGN_IN);
 
-
-
-        //startActivityForResult(intent, RC_SIGN_IN);
         mViewModel.setIsSigningIn(true);
     }
 
@@ -356,5 +346,7 @@ public class MainActivity extends AppCompatActivity
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 }
 
