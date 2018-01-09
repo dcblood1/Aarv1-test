@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        // Apply filters
+        // Apply filters, for the first time correct?
         onFilter(mViewModel.getFilters());
     }
 
@@ -292,6 +292,7 @@ public class MainActivity extends AppCompatActivity
 
         // Save filters
         mViewModel.setFilters(filters);
+        // this is what calls the filters.
 
     }
 

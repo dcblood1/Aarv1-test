@@ -30,7 +30,7 @@ public class FilterDialogFragment extends DialogFragment {
 
     public static final String TAG = "FilterDialog";
 
-    interface FilterListener {
+    public interface FilterListener {
 
         void onFilter(Filters filters);
 
@@ -96,6 +96,8 @@ public class FilterDialogFragment extends DialogFragment {
     // closes the menu when the user presses the cancel button
     @OnClick(R.id.button_cancel)
     public void onCancelClicked() {
+
+        Log.v(TAG,"button_cancel clicked");
         dismiss();
     }
 
