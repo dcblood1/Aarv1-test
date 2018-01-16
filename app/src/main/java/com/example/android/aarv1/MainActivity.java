@@ -2,6 +2,7 @@ package com.example.android.aarv1;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -40,7 +41,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
-        implements FilterDialogFragment.FilterListener, AarAdapter.OnAarSelectedListener {
+        implements FilterDialogFragment.FilterListener,
+        AarAdapter.OnAarSelectedListener,
+        MainFragment.OnFragmentInteractionListener,
+        EditsFragment.OnFragmentInteractionListener,
+        SavedFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "MainActivity";
 
@@ -104,6 +109,7 @@ public class MainActivity extends AppCompatActivity
 
         // Filter Dialog
         mFilterDialog = new FilterDialogFragment();
+        Log.v(TAG,"creating new FilterDialogFragment in MainActivity");
 
         // Set up FAB to open editorActivity (incoming)
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -240,6 +246,7 @@ public class MainActivity extends AppCompatActivity
     public void onFilterClicked() {
         // Show the dialog containing filter options
         mFilterDialog.show(getSupportFragmentManager(), FilterDialogFragment.TAG);
+
     }
 
     // when user clicks on cancel button, clears filters and sets them to default
@@ -349,5 +356,9 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
 }
 

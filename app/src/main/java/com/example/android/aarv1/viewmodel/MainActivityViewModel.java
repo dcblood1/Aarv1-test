@@ -1,6 +1,7 @@
 package com.example.android.aarv1.viewmodel;
 
 import android.arch.lifecycle.ViewModel;
+import android.util.Log;
 
 import com.example.android.aarv1.Filters;
 
@@ -29,8 +30,12 @@ public class MainActivityViewModel extends ViewModel {
         this.mIsSigningIn = mIsSigningIn;
     }
 
-    public Filters getFilters(){ return mFilters;}
+    public Filters getFilters(){
+        Log.v(String.valueOf(MainActivityViewModel.class),"this is getFilters() in mainActivityViewModel");
+        return mFilters;}
 
-    public void setFilters(Filters mFilters) { this.mFilters = mFilters; }
+    public void setFilters(Filters mFilters) {
+        Log.v(String.valueOf(MainActivityViewModel.class),"this is setFilters() in mainActivityViewModel");
+        this.mFilters = mFilters; }
 
 }

@@ -102,19 +102,16 @@ public class Filters {
         return desc.toString();
     }
 
-    // Sets the string for how it is sorted,
+    // Sets the string for how it is sorted.
     public String getOrderDescription(Context context) {
         if( AAR.FIELD_OLDEST.equals(sortBy) && Query.Direction.ASCENDING.equals(sortDirection)) {
-            return context.getString(R.string.sorted_by_oldest);
+            return context.getString(R.string.sort_by_oldest);
         } else if( AAR.FIELD_UPVOTES.equals(sortBy)) {
-            return context.getString(R.string.sorted_by_votes);
+            return context.getString(R.string.sort_by_votes);
         } else if( AAR.FIELD_VIEWS.equals(sortBy)) {
-            return context.getString(R.string.sorted_by_views);
+            return context.getString(R.string.sort_by_views);
         } else {
-            return context.getString(R.string.sorted_by_most_recent);
+            return context.getString(R.string.sort_by_most_recent);
         }
-
     }
-
-
 }

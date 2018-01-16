@@ -245,8 +245,6 @@ public class EditorActivity extends AppCompatActivity{
         Date hasTimeStamp= Calendar.getInstance().getTime();
         final String hasFormattedDate = formatDate(hasTimeStamp);
 
-        Log.v("EditorActivity.java", "filePath before Map: " + filePath);
-
         // If there is a photo, then go through this and add image to storage, then upload to db with file
         if (filePath != null){
             pd.show();

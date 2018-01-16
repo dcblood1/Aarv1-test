@@ -10,11 +10,20 @@
     <item>@string/skidding</item>
 </string-array>
 
-    <!-- These are the options displayed in the Drilling category drop-down Spinner -->
+    <!-- These are the options displayed in the location drop-down Spinner -->
     <string-array name="array_location_options">
         <item>@string/eagleford</item>
         <item>@string/haynesville</item>
         <item>@string/permian</item>
+    </string-array>
+
+
+    <!-- These are the options displayed in the sort By drop-down Spinner -->
+    <string-array name="array_sort_by_options">
+        <item>@string/sort_by_most_recent</item>
+        <item>@string/sort_by_oldest</item>
+        <item>@string/sort_by_votes</item>
+        <item>@string/sort_by_views</item>
     </string-array>
 
 

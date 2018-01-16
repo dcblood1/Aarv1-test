@@ -46,6 +46,7 @@
     <string name="sort_by_votes">Sort by Votes</string>
     <string name="sort_by_views">Sort by Views</string>
 
+    <!-- This was being used to be gramatically correct, but changed it to make it work... have not deleted, afraid attached to something.-->
     <string name="sorted_by_most_recent">Sorted by Most Recent</string>
     <string name="sorted_by_oldest">Sorted by Oldest</string>
     <string name="sorted_by_votes">Sorted by Votes</string>
@@ -65,7 +66,7 @@
 
     <!-- Sign out -->
     <string name="sign_out">Sign Out</string>
-    <string name="title_activity_bottom_nav_test">BottomNavTest</string>
+    <string name="title_activity_AAR">AAR</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>

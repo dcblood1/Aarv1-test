@@ -5,6 +5,7 @@ package com.example.android.aarv1;
  */
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.example.android.aarv1.model.AAR;
@@ -53,11 +55,56 @@ public class FilterDialogFragment extends DialogFragment {
     // declares the interface we set up above.
     private FilterListener mFilterListener;
 
+    // TODO: Rename parameter arguments, choose names that match
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private static final String PARAM_1 = "category";
+    private static final String PARAM_2 = "location";
+    private static final String PARAM_3 = "sortBy";
+
+    // TODO: Rename and change types of parameters
+    private String mCategory;
+    private String mLocation;
+    private String mSortBy;
+
+    // TODO: Rename and change types and number of parameters
+    public static FilterDialogFragment newInstance(String category, String location, String sortBy) {
+        FilterDialogFragment fragment = new FilterDialogFragment();
+        Bundle args = new Bundle();
+        args.putString(PARAM_1, category);
+        args.putString(PARAM_2, location);
+        args.putString(PARAM_3, sortBy);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         mRootView = inflater.inflate(R.layout.dialog_filters, container, false);
+
+        Spinner categorySpinner = (Spinner) mRootView.findViewById(R.id.spinner_category);
+        Spinner locationSpinner = (Spinner) mRootView.findViewById(R.id.spinner_location);
+        Spinner sortBySpinner = (Spinner) mRootView.findViewById(R.id.spinner_sort);
+
+
+        if (getArguments() != null) {
+            Log.v(TAG,"getArguments in filterdialog" + getArguments());
+            mCategory= getArguments().getString(PARAM_1);
+            mLocation= getArguments().getString(PARAM_2);
+            mSortBy= getArguments().getString(PARAM_3);
+            categorySpinner.setSelection(((ArrayAdapter<String>)categorySpinner.getAdapter()).getPosition(mCategory));
+            locationSpinner.setSelection(((ArrayAdapter<String>)locationSpinner.getAdapter()).getPosition(mLocation));
+            sortBySpinner.setSelection(((ArrayAdapter<String>)sortBySpinner.getAdapter()).getPosition(mSortBy));
+
+        }
+
         ButterKnife.bind(this, mRootView);
 
         return mRootView;
@@ -69,6 +116,9 @@ public class FilterDialogFragment extends DialogFragment {
 
         if (context instanceof FilterListener) {
             mFilterListener = (FilterListener) context;
+        }else {
+            throw new RuntimeException(context.toString()
+                    + " must implement FilterListener");
         }
     }
 
@@ -103,7 +153,7 @@ public class FilterDialogFragment extends DialogFragment {
 
     //
     @Nullable
-    private String getSelectedCategory() {
+    public String getSelectedCategory() {
         String selected = (String) mCategorySpinner.getSelectedItem();
         if (getString(R.string.value_any_category).equals(selected)) {
             return null;
@@ -113,7 +163,7 @@ public class FilterDialogFragment extends DialogFragment {
     }
 
     @Nullable
-    private String getSelectedLocation() {
+    public String getSelectedLocation() {
         String selected = (String) mLocationSpinner.getSelectedItem();
         if (getString(R.string.value_any_location).equals(selected)) {
             return null;
@@ -123,7 +173,7 @@ public class FilterDialogFragment extends DialogFragment {
     }
 
     @Nullable
-    private String getSelectedSortBy() {
+    public String getSelectedSortBy() {
         String selected = (String) mSortSpinner.getSelectedItem();
         if (getString(R.string.sort_by_most_recent).equals(selected)) {
             return AAR.FIELD_DATE;
@@ -140,7 +190,7 @@ public class FilterDialogFragment extends DialogFragment {
 
     // handles the sort direction... need to handle for each getSelectedSortBy
     @Nullable
-    private Query.Direction getSortDirection() {
+    public Query.Direction getSortDirection() {
         String selected = (String) mSortSpinner.getSelectedItem();
         if (getString(R.string.sort_by_most_recent).equals(selected)){
             return Query.Direction.DESCENDING;
@@ -155,7 +205,7 @@ public class FilterDialogFragment extends DialogFragment {
         return null;
     }
 
-    // resets all filters back to defaults??
+    // resets all filters back to defaults
     public void resetFilters() {
         if (mRootView != null) {
             mCategorySpinner.setSelection(0);
@@ -163,7 +213,6 @@ public class FilterDialogFragment extends DialogFragment {
             mSortSpinner.setSelection(0);
         }
     }
-
 
     public Filters getFilters() {
         Filters filters = new Filters();
@@ -173,10 +222,29 @@ public class FilterDialogFragment extends DialogFragment {
             filters.setLocation(getSelectedLocation());
             filters.setSortBy(getSelectedSortBy());
             filters.setSortDirection(getSortDirection());
-        }
-        Log.v(TAG,"these are the filters: " + filters);
 
+        }
+        Log.v(TAG,"these are the filters in FilterDialogFragment: " + filters);
+
+        //Bundle stuff??
+
+        // also return selections??
         return filters;
+    }
+
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnFragmentInteractionListener {
+        void onFragmentInteraction(Uri uri);
     }
 
 

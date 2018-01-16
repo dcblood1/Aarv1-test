@@ -46,7 +46,9 @@ import butterknife.OnClick;
  * create an instance of this fragment.
  */
 public class MainFragment extends Fragment implements
-        FilterDialogFragment.FilterListener, AarAdapter.OnAarSelectedListener{
+        FilterDialogFragment.FilterListener,
+        AarAdapter.OnAarSelectedListener,
+        FilterDialogFragment.OnFragmentInteractionListener{
 
     private static final String TAG = "MainFragment";
 
@@ -86,12 +88,17 @@ public class MainFragment extends Fragment implements
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "filters";
+    private static final String ARG_PARAM2 = "category";
+    private static final String ARG_PARAM3 = "location";
+    private static final String ARG_PARAM4 = "sortBy";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String mFilters;
+    private String mCategory;
+    private String mLocation;
+    private String mSortBy;
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -103,26 +110,41 @@ public class MainFragment extends Fragment implements
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param filters Parameter 1.
+     * @param category Parameter 2.
+     * @param location Paramater 3.
+     * @param sortBy Parameter 4.
      * @return A new instance of fragment MainFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MainFragment newInstance(String param1, String param2) {
+    public static MainFragment newInstance(String filters, String category, String location, String sortBy) {
         MainFragment fragment = new MainFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, filters);
+        args.putString(ARG_PARAM2, category);
+        args.putString(ARG_PARAM3, location);
+        args.putString(ARG_PARAM4, sortBy);
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
+    public void onAttachFragment(Fragment childFragment) {
+        super.onAttachFragment(childFragment);
+
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(TAG,"getArguments() in MainFragment = " + getArguments());
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mFilters = getArguments().getString(ARG_PARAM1);
+            mCategory = getArguments().getString(ARG_PARAM2);
+            mLocation = getArguments().getString(ARG_PARAM3);
+            mSortBy = getArguments().getString(ARG_PARAM4);
+            Log.v(TAG,"mSortBy in mainFrag " + mSortBy);
+
         }
 
         // idk why this wont work... Do I need it?
@@ -133,19 +155,24 @@ public class MainFragment extends Fragment implements
 
         // View model
         // What do I need to do to update the view Model??
-        mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+        mViewModel = ViewModelProviders.of(getActivity()).get(MainActivityViewModel.class);
 
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(true);
 
         //initialize Firestore and main RecyclerView
-        //init();
+        init();
         //getAars();
 
         // Filter Dialog
+        Bundle bundle = new Bundle();
+        bundle.putString("category",mCategory);
+        bundle.putString("location",mLocation);
+        bundle.putString("sortBy",mSortBy);
         mFilterDialog = new FilterDialogFragment();
-        //mFilterDialog.getActivity();
-        //mFilterDialog.instantiate(getActivity(),FilterDialogFragment.TAG);
+        //Log.v(TAG,"mFilterDialog.getSelec" + mFilterDialog.getSelectedLocation());
+        mFilterDialog.setArguments(bundle);
+
     }
 
     @Override
@@ -156,7 +183,7 @@ public class MainFragment extends Fragment implements
         // I think this is how I need to use it??
         mAarsRecycler = view.findViewById(R.id.recycler_aars_frag);
         mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-        init();
+        //init();
         getAars();
 
         //mFilterDialog = new FilterDialogFragment();
@@ -283,7 +310,6 @@ public class MainFragment extends Fragment implements
         });
     }
 
-
     // if the aar is selected, returns the appropriate data. adds a view to the AAR transaction... on day
     public void onAarSelected(DocumentSnapshot aar) {
 
@@ -323,14 +349,13 @@ public class MainFragment extends Fragment implements
         onFilter(Filters.getDefault());
     }
 
-
     // Allows the user to select filters to display the correct data
     @Override
     public void onFilter(Filters filters) {
 
         // Construct query basic query
         Query query = db.collection("aars");
-        Log.v(TAG,"this is the first query in onFilter" + query);
+        Log.v(TAG,"this is the first query in onFilter in MainFragment" + query);
 
         //Category (equality filter)
         if (filters.hasCategory()){
@@ -344,10 +369,7 @@ public class MainFragment extends Fragment implements
 
         //Sort by (orderBy with direction), it doesn't like the sort BY!... IDK WHY.
         if (filters.hasSortBy()) {
-            Log.v(TAG,"filters.hasSortBy " + filters.hasSortBy());
             query = query.orderBy(filters.getSortBy(), filters.getSortDirection());
-            //if I wanted to hard code it...
-        Log.v(TAG,"query in hasSortBy " + query);
     }
 
     // Limit items
@@ -357,7 +379,6 @@ public class MainFragment extends Fragment implements
     mQuery = query;
 
     // sets the recyclerView and options
-        Log.v(TAG,"getAars in onFilter about to be called");
         getAars();
 
     // Set header
@@ -365,9 +386,13 @@ public class MainFragment extends Fragment implements
         mCurrentSortByView.setText(filters.getOrderDescription(getActivity()));
 
     // Save filters
-        Log.v(TAG,"this is the mViewModel" + mViewModel);
         mViewModel.setFilters(filters);
-        Log.v(TAG,"this is the mViewModel" + mViewModel);
+
+    }
+
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
 
     }
 
