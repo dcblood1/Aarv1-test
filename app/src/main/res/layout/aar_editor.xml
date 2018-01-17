@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     tools:context=".EditorActivity"
     >
@@ -151,17 +152,6 @@
             android:layout_weight="1"
             android:text="Location or basin: " />
 
-        <!--
-        <EditText
-            android:id="@+id/edit_aar_location"
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
-            android:hint="(ie: eagleford, haynesville)"
-            android:inputType="textCapCharacters"
-            />
-            -->
-
         <Spinner
             android:id="@+id/edit_aar_location"
             android:layout_width="0dp"
@@ -182,7 +172,7 @@
             android:id="@+id/photo_picker_TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add an image (optional, one per AAR):"
+            android:text="Add an image (optional):"
 
             />
 
@@ -192,6 +182,15 @@
             android:layout_height="48dp"
             android:background="@android:drawable/ic_menu_gallery"
             android:layout_marginLeft="24dp"/>
+
+        <!-- Back button -->
+        <ImageView
+            android:id="@+id/remove_photo_image_view"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackground"
+            app:srcCompat="@drawable/ic_clear_black_24dp"
+            />
 
     </LinearLayout>
 

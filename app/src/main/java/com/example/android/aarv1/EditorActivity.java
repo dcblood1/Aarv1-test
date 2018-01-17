@@ -61,6 +61,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     private Bitmap mBitmapPicture;
     private String mDownloadUrl;
     private TextView mPhotoPickerTextView;
+    private ImageView mRemovePhotoImageView;
     private int mUpVotes = 0;
     private int mViews = 0;
     Uri filePath;
@@ -136,6 +137,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         mLocationSpinner = (Spinner) findViewById(R.id.edit_aar_location);
         mSelectedImageView = (ImageView) findViewById(R.id.edit_aar_imageView);
         mPhotoPickerTextView = (TextView) findViewById(R.id.photo_picker_TextView);
+        mRemovePhotoImageView = (ImageView) findViewById(R.id.remove_photo_image_view);
 
         //call setupSpinner method
         setupSpinner();
@@ -153,6 +155,25 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                 startActivityForResult(Intent.createChooser(intent,"Select Image"),RC_PHOTO_PICKER);
             }
             });
+
+        mRemovePhotoImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // remove the photo somehow...
+                Log.v(TAG,"mRemovePhotoImageView clicked on");
+                // if there is a photo... remove it.
+                // set the filepath to null so it does not try to add it to db. Nice work!
+                // now has to remove download url too... Kill it all. Nice work!
+                if (mSelectedImageView.getDrawable() != null) {
+                    mSelectedImageView.setImageDrawable(null);
+                    filePath = null;
+                    mDownloadUrl = null;
+
+                } else {
+                    Toast.makeText(EditorActivity.this,"No image to remove",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
     }
 
