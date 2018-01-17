@@ -174,6 +174,8 @@ public class EditsFragment extends Fragment implements
         // Get reference to the aars
         mAarRef = db.collection("aars").document(aar.getId());
 
+        // need to call
+
         startActivity(editor_intent);
 
     }
@@ -251,4 +253,6 @@ public class EditsFragment extends Fragment implements
         // sets the RecyclerView to our current adapter.
         mEditsRecycler.setAdapter(mAarAdapter);
     }
+
+
 }

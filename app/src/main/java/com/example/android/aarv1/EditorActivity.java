@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +20,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.android.aarv1.model.AAR;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -30,6 +30,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -53,7 +54,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     private EditText mDescriptionEditText;
     private EditText mCauseEditText;
     private EditText mRecommendationsEditText;
-    private EditText mLocationEditText;
     private ImageButton mPhotoPickerButton;
     private Spinner mCategorySpinner;
     private Spinner mLocationSpinner;
@@ -64,6 +64,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     private int mUpVotes = 0;
     private int mViews = 0;
     Uri filePath;
+    private String mDate;
     ProgressDialog pd;
     // Constant for the photo picker?? idk why this is needed.
     private static final int RC_PHOTO_PICKER = 2;
@@ -81,6 +82,9 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     private FirebaseAuth mFirebaseAuth;
     private String mAarId;
     private DocumentReference mAarRef;
+    private ListenerRegistration mAarRegistration;
+
+    private boolean mHasExtras;
 
     // Access a Cloud Firestore instance from your Activity
     FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -92,8 +96,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     StorageReference storageRef = storage.getReferenceFromUrl("gs://aarv1-c9483.appspot.com/drilling_aar_photos");
     //gs://aarv1-c9483.appspot.com/drilling_aar_photos
 
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,25 +104,16 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         // Initialize firestore
         mFirestore = FirebaseFirestore.getInstance();
 
-        // Get aar ID from extras, if it is clicked on by a user... in editor activity right?
-        //String aarId = getIntent().getExtras().getString(KEY_AAR_ID);
-        //Log.v(TAG,"this is the aarId = " + aarId);
         Intent intent = getIntent();
         Log.v(TAG,"this is the intent" + intent);
-        boolean hasEextras = getIntent().hasExtra(KEY_AAR_ID);
-        Log.v(TAG,"this is the extras" + hasEextras);
+        mHasExtras = getIntent().hasExtra(KEY_AAR_ID);
 
         // Determine whether the user is adding an aar or editing one
-        if (hasEextras) {
+        if (mHasExtras) {
             // Then it is coming the user wanting to edit
             mAarId = getIntent().getExtras().getString(KEY_AAR_ID);
             // Get reference to the aars
             mAarRef = mFirestore.collection("aars").document(mAarId);
-            // what else can I grab from this data??
-            String e_category = getIntent().getExtras().getString("category");
-            Log.v(TAG,"this is the e_category" + e_category);
-        } else {
-            // do something else continue with normal code??
         }
 
         pd = new ProgressDialog(this);
@@ -151,6 +144,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         mPhotoPickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.v(TAG,"mPhotoPickerButton clicked on");
                 Intent intent = new Intent(); //Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -162,6 +156,25 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // this is a listener for the firestore to know to be accessed? essentially?
+        if (mHasExtras) {mAarRegistration = mAarRef.addSnapshotListener(this);}
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // removes listener for onEvent I believe
+        if(mAarRegistration != null) {
+            mAarRegistration.remove();
+            mAarRegistration = null;
+        }
+    }
+
     // Once a user has selected an image, it takes the image and displays it, so they know they selected the correct one.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -169,19 +182,28 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK && data != null && data.getData() != null){
             filePath = data.getData();
             Log.v("EditorActivity.java", "filePath after getDate() is: " + filePath);
-            try {
-                // getting image from gallery
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                //This lowers the resolution so that it can be displayed int he image view
-                Bitmap resized = Bitmap.createScaledBitmap(bitmap,(int)(bitmap.getWidth()*0.7),(int)(bitmap.getHeight()*0.7),true);
+            Log.v(TAG,"glide applying image to mSelectedImageView");
 
-                mBitmapPicture = resized;
-                // setting image to ImageView
-                mSelectedImageView.setImageBitmap(resized);
+            Glide.with(this)
+                    .load(filePath)
+                    .fitCenter()
+                    .into(mSelectedImageView);
+
+            // maybe mSelectedImageView isnt clean??
+
+
+            try {
+
+                // Loads picture into imageView, no memory issues. Avoid using bitmaps.
+                //Log.v(TAG,"glide applying image to mSelectedImageView");
+                //Glide.with(mSelectedImageView.getContext())
+                 //       .load(filePath)
+                 //       .fitCenter()
+                 //       .into(mSelectedImageView);
 
                 // Once the image is set, remove the text and button for adding an image
-                mPhotoPickerTextView.setVisibility(View.GONE);
-                mPhotoPickerButton.setVisibility(View.GONE);
+                //mPhotoPickerTextView.setVisibility(View.GONE);
+                //mPhotoPickerButton.setVisibility(View.GONE);
 
             } catch (Exception e){
                 e.printStackTrace();
@@ -209,7 +231,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
 
         // Apply the adapter to the spinner
         mCategorySpinner.setAdapter(categoryDrillingSpinnderAdapter);
-
         mLocationSpinner.setAdapter(locationSpinnerAdapter);
 
         // Set the String mCategory equal to one of the following categories
@@ -263,19 +284,16 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
 
         // grabs all of the necessary user inputs
         EditText titleEditText = (EditText) findViewById(R.id.edit_aar_title);
-        final String hasTitle = titleEditText.getText().toString();
+        final String hasTitle = titleEditText.getText().toString().trim();
 
         EditText descriptionEditText = (EditText) findViewById(R.id.edit_aar_description);
-        final String hasDescription = descriptionEditText.getText().toString();
+        final String hasDescription = descriptionEditText.getText().toString().trim();
 
         EditText causeEditText = (EditText) findViewById(R.id.edit_aar_cause);
-        final String hasCause = causeEditText.getText().toString();
+        final String hasCause = causeEditText.getText().toString().trim();
 
         EditText recommendationsEditText = (EditText) findViewById(R.id.edit_aar_recommendations);
-        final String hasRecommendations = recommendationsEditText.getText().toString();
-
-        //EditText locationEditText = (EditText) findViewById(R.id.edit_aar_location);
-        //final String hasLocation = locationEditText.getText().toString();
+        final String hasRecommendations = recommendationsEditText.getText().toString().trim();
 
         // gets the current date and time (Sat Dec 02 00:04:26 EST 2017)
         Date hasTimeStamp= Calendar.getInstance().getTime();
@@ -289,15 +307,17 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             Toast.makeText(EditorActivity.this, "Must be signed in to add AAR", Toast.LENGTH_SHORT).show();
         }
 
-
         // If there is a photo, then go through this and add image to storage, then upload to db with file
         if (filePath != null){
             pd.show();
             //
             StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
+            Log.v(TAG,"this is the childRef" + childRef);
 
             // upload the image
             UploadTask uploadTask = childRef.putFile(filePath);
+
+            Log.v(TAG,"About to begin the upload");
 
             uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -306,7 +326,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
                     mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
-                    Log.v("EditorActivity.java", "mDownoladUrl=" + mDownloadUrl);
 
                     // Create a new AAR POJO, then set value inputs
                     AAR aar = new AAR();
@@ -316,38 +335,58 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     aar.setDescription(hasDescription);
                     aar.setCause(hasCause);
                     aar.setRecommendations(hasRecommendations);
-                    //aar.setLocation(hasLocation);
                     aar.setLocation(mLocation);
-                    aar.setDate(hasFormattedDate);
                     aar.setUpVotes(mUpVotes);
                     aar.setViews(mViews);
                     aar.setPhoto(mDownloadUrl);
                     aar.setUser(currentUserId);
 
-
                     // Add a new document with a generated ID and pass into the Firebase Storage
-                    db.collection("aars")
-                            .add(aar)
-                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                      @Override
-                                                      public void onSuccess(DocumentReference documentReference) {
-                                                          Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        // hasExtras is checking if this is an existing aar or new.
+                    if (mHasExtras) {
+                        db.collection("aars").document(mAarId)
+                                .set(aar)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Toast.makeText(EditorActivity.this,"AAR updated", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                        // This updates the date with the first date it was created
+                        db.collection("aars").document(mAarId).update("date", mDate);
+
+
+                    } else {
+                        // This set date is moved down... so it does not get updated when a user edits their aar
+                        aar.setDate(hasFormattedDate);
+                        db.collection("aars")
+                                .add(aar)
+                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                          @Override
+                                                          public void onSuccess(DocumentReference documentReference) {
+                                                              Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                                                              Toast.makeText(EditorActivity.this, "AAR Successfully Added", Toast.LENGTH_SHORT).show();
+                                                          }
                                                       }
-                            }
-                            )
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.w("EditorActivity.java", "Error adding document", e);
-                                }
-                            });
+                                )
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w("EditorActivity.java", "Error adding document", e);
+                                        Toast.makeText(EditorActivity.this, "Upload Failure", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
 
                     // closes EditorActivity
+                    pd.dismiss();
                     finish();
-
-                    Toast.makeText(EditorActivity.this, "Upload successful", Toast.LENGTH_SHORT).show();
-                    Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
-
 
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -369,35 +408,63 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             aar.setDescription(hasDescription);
             aar.setCause(hasCause);
             aar.setRecommendations(hasRecommendations);
-            //aar.setLocation(hasLocation);
             aar.setLocation(mLocation);
             aar.setUpVotes(mUpVotes);
             aar.setViews(mViews);
             aar.setDate(hasFormattedDate);
             aar.setUser(currentUserId);
 
-            // Add a new document with a generated ID and pass into the Firebase Storage
-            db.collection("aars")
-                    .add(aar)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                              @Override
-                                              public void onSuccess(DocumentReference documentReference) {
-                     Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+            if (mHasExtras) {
+                db.collection("aars").document(mAarId)
+                        .set(aar)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(EditorActivity.this,"AAR updated", Toast.LENGTH_SHORT).show();
+                                pd.dismiss();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
+                                pd.dismiss();
+                            }
+                        });
+                // if the aar alreadys exists, then keep the date the same it was initially created
+                    db.collection("aars").document(mAarId).update("date", mDate);
+                // if a photo already exists, will keep it the same
+                if (mDownloadUrl != null) {
+                    db.collection("aars").document(mAarId).update("photo", mDownloadUrl);
+                }
+            } else {
+                // This set date is moved down... so it does not get updated when a user edits their aar
+                aar.setDate(hasFormattedDate);
+
+                // Add a new document with a generated ID and pass into the Firebase DB
+                db.collection("aars")
+                        .add(aar)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                  @Override
+                                                  public void onSuccess(DocumentReference documentReference) {
+                                                      Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                                                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+                                                  }
                                               }
-                                          }
-                    )
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w("EditorActivity.java", "Error adding document", e);
-                        }
-                    });
+                        )
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w("EditorActivity.java", "Error adding document", e);
+                            }
+                        });
+
+            }
 
             // closes EditorActivity
+            pd.dismiss();
             finish();
         }
-
     }
 
     /**
@@ -413,10 +480,10 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     protected void onDestroy() {
         Log.v(TAG,"onDestroy being called:");
         super.onDestroy();
-        if (mBitmapPicture != null){
-            mBitmapPicture.recycle();
-            mBitmapPicture = null;
-        }
+        //if (mBitmapPicture != null){
+        //    mBitmapPicture.recycle();
+        //    mBitmapPicture = null;
+        //}
     }
 
     @Override
@@ -438,6 +505,26 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         onAarLoaded(documentSnapshot.toObject(AAR.class));
     }
 
+    // for loading user input into edit text
     private void onAarLoaded(AAR aar) {
+        Log.v(TAG,"getCategory():" + aar.getCategory());
+        Log.v(TAG,"getTitle():" + aar.getTitle());
+        mCategorySpinner.setSelection(((ArrayAdapter<String>)mCategorySpinner.getAdapter()).getPosition(aar.getCategory()));
+        mTitleEditText.setText(aar.getTitle());
+        mDescriptionEditText.setText(aar.getDescription());
+        mCauseEditText.setText(aar.getCause());
+        mRecommendationsEditText.setText(aar.getRecommendations());
+        mLocationSpinner.setSelection(((ArrayAdapter<String>)mLocationSpinner.getAdapter()).getPosition(aar.getLocation()));
+        mDate = aar.getDate();
+
+        // if there is a photo, grab the initial url, then put it at the bottom. & if filrepath(a new image) is not selected).
+        if (aar.getPhoto() != null && filePath == null) {
+            mDownloadUrl = aar.getPhoto(); // Think this is right?
+            Glide.with(mSelectedImageView.getContext())
+                    .load(aar.getPhoto())
+                    .into(mSelectedImageView);
+            Log.v(TAG,"this is the getPhoto() " + aar.getPhoto());
+            Log.v(TAG,"glide applied image");
+        }
     }
 }
