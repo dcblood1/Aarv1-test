@@ -10,6 +10,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -162,8 +164,8 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                 // remove the photo somehow...
                 Log.v(TAG,"mRemovePhotoImageView clicked on");
                 // if there is a photo... remove it.
-                // set the filepath to null so it does not try to add it to db. Nice work!
-                // now has to remove download url too... Kill it all. Nice work!
+                // set the filepath to null so it does not try to add it to db.
+                // now has to remove download url too.
                 if (mSelectedImageView.getDrawable() != null) {
                     mSelectedImageView.setImageDrawable(null);
                     filePath = null;
@@ -522,8 +524,10 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             Log.w(TAG, "aar:onEvent", e);
             return;
         }
+        if (documentSnapshot.exists()) {
+            onAarLoaded(documentSnapshot.toObject(AAR.class));
+        }
 
-        onAarLoaded(documentSnapshot.toObject(AAR.class));
     }
 
     // for loading user input into edit text
@@ -547,5 +551,39 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             Log.v(TAG,"this is the getPhoto() " + aar.getPhoto());
             Log.v(TAG,"glide applied image");
         }
+    }
+
+    // Dont want options menu to show unless there is an active AAR
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (mAarId != null) {
+            getMenuInflater().inflate(R.menu.editor_activity_menu, menu);
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_delete_aar:
+                // Delete the aar from here
+                // now... how do I delete an aar from the data base?
+                db.collection("aars").document(mAarId).delete()
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(EditorActivity.this, "AAR Deleted", Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(EditorActivity.this, "AAR Failed to be Deleted...", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                break;
+        }
+        finish();
+        return super.onOptionsItemSelected(item);
+
     }
 }

@@ -17,6 +17,7 @@
         app:showAsAction="ifRoom"
         />
 
+    <!-- Need a 72dp star-->
     <item
         android:id="@+id/navigation_saves"
         android:icon="@drawable/tab_news"
