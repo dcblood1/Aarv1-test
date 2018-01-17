@@ -1,22 +1,30 @@
 package com.example.android.aarv1;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.android.aarv1.adapter.AarAdapter;
 import com.example.android.aarv1.viewmodel.MainActivityViewModel;
-import com.google.firebase.firestore.DocumentReference;
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+import java.util.Arrays;
+import java.util.List;
+
+import butterknife.BindView;
 import butterknife.ButterKnife;
+
+
 
 public class BottomNavActivity extends AppCompatActivity implements
         MainFragment.OnFragmentInteractionListener,
@@ -24,11 +32,13 @@ public class BottomNavActivity extends AppCompatActivity implements
         SavedFragment.OnFragmentInteractionListener,
         FilterDialogFragment.FilterListener {
 
+    // RC (Request code) for user Sign in
+    public static final int RC_SIGN_IN = 1;
+
     // Access a Cloud Firestore instance from your Activity
     private FirebaseFirestore db;
     private MainActivityViewModel mViewModel;
-    private AarAdapter mAarAdapter;
-    private DocumentReference mAarRef;
+    private FirebaseAuth mFirebaseAuth;
 
     // limits the amount of aars we get back... want a limit?
     private static final int LIMIT = 50;
@@ -37,6 +47,9 @@ public class BottomNavActivity extends AppCompatActivity implements
     private Query mQuery;
 
     private static final String TAG = "MainActivity";
+
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -65,6 +78,10 @@ public class BottomNavActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bottom_nav);
         ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
+
+        // initialize firebase authentication
+        mFirebaseAuth = FirebaseAuth.getInstance();
 
         //this allows us to open up to the main fragment initially
         if (savedInstanceState == null) {
@@ -80,6 +97,69 @@ public class BottomNavActivity extends AppCompatActivity implements
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
 
         db = FirebaseFirestore.getInstance();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Start sign in if necessary
+        if (shouldStartSignIn()) {
+            startSignIn();
+            return;
+        }
+    }
+
+    // Used for Signing in
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            mViewModel.setIsSigningIn(false);
+
+            if (resultCode != RESULT_OK && shouldStartSignIn()) {
+                startSignIn();
+            }
+        }
+    }
+
+    private boolean shouldStartSignIn() {
+        return (!mViewModel.getIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
+    }
+
+    private void startSignIn() {
+        // Sign in with FirebaseUI
+
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
+        );
+
+        startActivityForResult(AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(false)
+                        .setAvailableProviders(providers)
+                        .build(),
+                RC_SIGN_IN);
+
+        mViewModel.setIsSigningIn(true);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_sign_out:
+                AuthUI.getInstance().signOut(this);
+                startSignIn();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -107,18 +187,16 @@ public class BottomNavActivity extends AppCompatActivity implements
 
     }
 
-    // Allows the user to select filters to display the correct data
+    // Allows the user to select filters to display the correct data, used in MainFragment and ViewModel.
+    // Dont necessarily understand how that all works...
     @Override
     public void onFilter(Filters filters) {
-        Log.v(TAG,"This is the onFilter in BottomNavActivity");
 
         // Construct query basic query
         Query query = db.collection("aars");
-        Log.v(TAG,"this is the first query in onFilter in BottomNavActivity" + query);
 
         //Category (equality filter)
         if (filters.hasCategory()){
-            Log.v(TAG,"category in bottomNav" + filters.getCategory());
             query = query.whereEqualTo("category", filters.getCategory());
         }
 
@@ -139,10 +217,7 @@ public class BottomNavActivity extends AppCompatActivity implements
         mQuery = query;
 
         // Save filters to mViewModel so data can be passed
-        Log.v(TAG,"this is the mViewModel prior to setFilters" + mViewModel);
         mViewModel.setFilters(filters);
-        Log.v(TAG,"these are the filters= " + filters);
-        Log.v(TAG,"this is the mViewModel after setFilters" + mViewModel);
 
         // This will pass data to the fragment from this activity... what do I need to pass? The filters right??
         Bundle bundle = new Bundle();
@@ -155,15 +230,9 @@ public class BottomNavActivity extends AppCompatActivity implements
         bundle.putString("location",filters.getLocation());
         bundle.putString("sortBy", filters.getOrderDescription(this));
 
-        Log.v(TAG,"this is the getOrderDescription" + filters.getOrderDescription(this));
-
-        //filters.getOrderDescription()
         // set Fragmentclass Arguments
         MainFragment fragobj = new MainFragment();
         fragobj.setArguments(bundle);
-
-        Log.v(TAG,"this is the fragobj being passed" + fragobj);
-        Log.v(TAG,"this is the bundle being passed" + bundle);
 
         // This replaces the content placeholder with the new fragment created.
         FragmentManager manager = getSupportFragmentManager();

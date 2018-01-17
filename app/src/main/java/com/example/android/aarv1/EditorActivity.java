@@ -24,8 +24,12 @@ import android.widget.Toast;
 import com.example.android.aarv1.model.AAR;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -38,9 +42,11 @@ import java.util.Date;
  * Created by Dillon on 12/1/2017.
  */
 
-public class EditorActivity extends AppCompatActivity{
+public class EditorActivity extends AppCompatActivity implements EventListener<DocumentSnapshot>{
 
     private static final String TAG = "EditorActivity";
+
+    public static final String KEY_AAR_ID = "key_aar_id";
 
     // EditText fields from the aar_editor.xml layout
     private EditText mTitleEditText;
@@ -72,6 +78,9 @@ public class EditorActivity extends AppCompatActivity{
     private FirebaseStorage mFirebaseStorage;
     private StorageReference mAARPhotosStorageReference;
     private FirebaseFirestore mFirestore;
+    private FirebaseAuth mFirebaseAuth;
+    private String mAarId;
+    private DocumentReference mAarRef;
 
     // Access a Cloud Firestore instance from your Activity
     FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -83,11 +92,36 @@ public class EditorActivity extends AppCompatActivity{
     StorageReference storageRef = storage.getReferenceFromUrl("gs://aarv1-c9483.appspot.com/drilling_aar_photos");
     //gs://aarv1-c9483.appspot.com/drilling_aar_photos
 
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.aar_editor);
-        Log.v("EditorActivity.java","onCreate being called in Editor Activity:");
+
+        // Initialize firestore
+        mFirestore = FirebaseFirestore.getInstance();
+
+        // Get aar ID from extras, if it is clicked on by a user... in editor activity right?
+        //String aarId = getIntent().getExtras().getString(KEY_AAR_ID);
+        //Log.v(TAG,"this is the aarId = " + aarId);
+        Intent intent = getIntent();
+        Log.v(TAG,"this is the intent" + intent);
+        boolean hasEextras = getIntent().hasExtra(KEY_AAR_ID);
+        Log.v(TAG,"this is the extras" + hasEextras);
+
+        // Determine whether the user is adding an aar or editing one
+        if (hasEextras) {
+            // Then it is coming the user wanting to edit
+            mAarId = getIntent().getExtras().getString(KEY_AAR_ID);
+            // Get reference to the aars
+            mAarRef = mFirestore.collection("aars").document(mAarId);
+            // what else can I grab from this data??
+            String e_category = getIntent().getExtras().getString("category");
+            Log.v(TAG,"this is the e_category" + e_category);
+        } else {
+            // do something else continue with normal code??
+        }
 
         pd = new ProgressDialog(this);
         pd.setMessage("Uploading... please wait");
@@ -95,6 +129,8 @@ public class EditorActivity extends AppCompatActivity{
         // get an instance of the firebaseDatabase class
         // Initialize Firebase Components
         mFirebaseStorage = FirebaseStorage.getInstance();
+        // initialize firebase authentication
+        mFirebaseAuth = FirebaseAuth.getInstance();
 
         // find all of the relevant views that we will need to read user input from
         mTitleEditText = (EditText) findViewById(R.id.edit_aar_title);
@@ -245,6 +281,15 @@ public class EditorActivity extends AppCompatActivity{
         Date hasTimeStamp= Calendar.getInstance().getTime();
         final String hasFormattedDate = formatDate(hasTimeStamp);
 
+        // get the current user ID and adds it to the AAR POJO, has to have it...
+        final String currentUserId = mFirebaseAuth.getUid();
+
+        if (currentUserId == null) {
+            onBackPressed();
+            Toast.makeText(EditorActivity.this, "Must be signed in to add AAR", Toast.LENGTH_SHORT).show();
+        }
+
+
         // If there is a photo, then go through this and add image to storage, then upload to db with file
         if (filePath != null){
             pd.show();
@@ -277,6 +322,7 @@ public class EditorActivity extends AppCompatActivity{
                     aar.setUpVotes(mUpVotes);
                     aar.setViews(mViews);
                     aar.setPhoto(mDownloadUrl);
+                    aar.setUser(currentUserId);
 
 
                     // Add a new document with a generated ID and pass into the Firebase Storage
@@ -328,6 +374,7 @@ public class EditorActivity extends AppCompatActivity{
             aar.setUpVotes(mUpVotes);
             aar.setViews(mViews);
             aar.setDate(hasFormattedDate);
+            aar.setUser(currentUserId);
 
             // Add a new document with a generated ID and pass into the Firebase Storage
             db.collection("aars")
@@ -380,5 +427,17 @@ public class EditorActivity extends AppCompatActivity{
     }
 
 
+    // This is for the user clicking on an existing aar
+    @Override
+    public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+        if (e != null) {
+            Log.w(TAG, "aar:onEvent", e);
+            return;
+        }
 
+        onAarLoaded(documentSnapshot.toObject(AAR.class));
+    }
+
+    private void onAarLoaded(AAR aar) {
+    }
 }

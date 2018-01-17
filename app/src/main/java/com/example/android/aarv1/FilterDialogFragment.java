@@ -89,11 +89,12 @@ public class FilterDialogFragment extends DialogFragment {
 
         mRootView = inflater.inflate(R.layout.dialog_filters, container, false);
 
+        // This is so I dont get slammed with some lame NullPointerException BS
         Spinner categorySpinner = (Spinner) mRootView.findViewById(R.id.spinner_category);
         Spinner locationSpinner = (Spinner) mRootView.findViewById(R.id.spinner_location);
         Spinner sortBySpinner = (Spinner) mRootView.findViewById(R.id.spinner_sort);
 
-
+        // This saves the user input when the filterDialog is created again in Main Fragment
         if (getArguments() != null) {
             Log.v(TAG,"getArguments in filterdialog" + getArguments());
             mCategory= getArguments().getString(PARAM_1);

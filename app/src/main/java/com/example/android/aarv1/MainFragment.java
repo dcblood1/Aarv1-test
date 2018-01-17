@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,30 +46,26 @@ import butterknife.OnClick;
  */
 public class MainFragment extends Fragment implements
         FilterDialogFragment.FilterListener,
-        AarAdapter.OnAarSelectedListener,
-        FilterDialogFragment.OnFragmentInteractionListener{
+        AarAdapter.OnAarSelectedListener{
 
     private static final String TAG = "MainFragment";
 
     // Access a Cloud Firestore instance from your Activity
     private FirebaseFirestore db;
-    private AarAdapter mAarAdapter; // the testing aar
+    private AarAdapter mAarAdapter;
     private FilterDialogFragment mFilterDialog;
     private MainActivityViewModel mViewModel;
-    private DocumentReference mAarRef;
+    private DocumentReference mAarRef; // used for selecting an aar
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
-    // limits the amount of aars we get back... want a limit?
+    // limits the amount of aars we get back
     private static final int LIMIT = 50;
 
     // create global for Query
     private Query mQuery;
 
-    // Bind Views using Butterknife from activity_main.xml
-    @BindView(R.id.toolbar)
-    Toolbar mToolbar;
-
+    // Bind Views using Butterknife from fragment_main.xml
     @BindView(R.id.text_current_search)
     TextView mCurrentSearchView;
 
@@ -86,14 +81,14 @@ public class MainFragment extends Fragment implements
     @BindView(R.id.progress_bar_view)
     ProgressBar prograssBarView;
 
-    // TODO: Rename parameter arguments, choose names that match
+    // These words are the same in BottomNavActivity.java, and are used to pass key-value pairs
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "filters";
     private static final String ARG_PARAM2 = "category";
     private static final String ARG_PARAM3 = "location";
     private static final String ARG_PARAM4 = "sortBy";
 
-    // TODO: Rename and change types of parameters
+    // used to pass data to FilterDialogFragment
     private String mFilters;
     private String mCategory;
     private String mLocation;
@@ -116,7 +111,7 @@ public class MainFragment extends Fragment implements
      * @param sortBy Parameter 4.
      * @return A new instance of fragment MainFragment.
      */
-    // TODO: Rename and change types and number of parameters
+    // When BottomNavActivity creates a new MainFragment, the values were passed in
     public static MainFragment newInstance(String filters, String category, String location, String sortBy) {
         MainFragment fragment = new MainFragment();
         Bundle args = new Bundle();
@@ -137,18 +132,6 @@ public class MainFragment extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(TAG,"getArguments() in MainFragment = " + getArguments());
-        if (getArguments() != null) {
-            mFilters = getArguments().getString(ARG_PARAM1);
-            mCategory = getArguments().getString(ARG_PARAM2);
-            mLocation = getArguments().getString(ARG_PARAM3);
-            mSortBy = getArguments().getString(ARG_PARAM4);
-            Log.v(TAG,"mSortBy in mainFrag " + mSortBy);
-
-        }
-
-        // idk why this wont work... Do I need it?
-        //setSupportActionBar(mToolbar);
 
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -164,13 +147,22 @@ public class MainFragment extends Fragment implements
         init();
         //getAars();
 
-        // Filter Dialog
+
+        // These values are being used to pass to FilterDialogFragment, so the user selections can be saved
+        if (getArguments() != null) {
+            mFilters = getArguments().getString(ARG_PARAM1);
+            mCategory = getArguments().getString(ARG_PARAM2);
+            mLocation = getArguments().getString(ARG_PARAM3);
+            mSortBy = getArguments().getString(ARG_PARAM4);
+            Log.v(TAG,"mSortBy in mainFrag " + mSortBy);
+
+        }
+        // Filter Dialog, This is needed to make the user selections saved when going back into the dialog filter
         Bundle bundle = new Bundle();
         bundle.putString("category",mCategory);
         bundle.putString("location",mLocation);
         bundle.putString("sortBy",mSortBy);
         mFilterDialog = new FilterDialogFragment();
-        //Log.v(TAG,"mFilterDialog.getSelec" + mFilterDialog.getSelectedLocation());
         mFilterDialog.setArguments(bundle);
 
     }
@@ -183,10 +175,8 @@ public class MainFragment extends Fragment implements
         // I think this is how I need to use it??
         mAarsRecycler = view.findViewById(R.id.recycler_aars_frag);
         mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-        //init();
-        getAars();
 
-        //mFilterDialog = new FilterDialogFragment();
+        getAars();
 
         ButterKnife.bind(this,view);
         return view;
@@ -346,6 +336,11 @@ public class MainFragment extends Fragment implements
     public void onClearFilter(){
         mFilterDialog.resetFilters();
 
+        // This needs to be called... due to the bundles in onCreate saving the users last selection.
+        // Might need to fix this later? Will it be a memory problem if it continues to create new fragments?
+        mFilterDialog = new FilterDialogFragment();
+
+
         onFilter(Filters.getDefault());
     }
 
@@ -391,10 +386,7 @@ public class MainFragment extends Fragment implements
     }
 
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
 
-    }
 
 
     /**
@@ -408,7 +400,6 @@ public class MainFragment extends Fragment implements
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 

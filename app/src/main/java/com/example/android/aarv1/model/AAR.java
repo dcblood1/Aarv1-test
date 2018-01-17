@@ -18,6 +18,7 @@ public class AAR {
     public static final String FIELD_OLDEST = "date";
     public static final String FIELD_VIEWS= "views";
     public static final String FIELD_UPVOTES = "upVotes";
+    public static final String FIELD_USER = "user";
     public static final String FIELD_HOTTEST = "hottest"; // going to implement this later, for when it is looked at the most
     // need to add all of these fileds to the actual AAR POJO
 
@@ -32,13 +33,14 @@ public class AAR {
     private int upVotes;
     private int views;
     private int hotness;
+    private String user;
 
     // firebase requires you to have object with no calls in it.
     public AAR() {}
 
     // create object, with place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, String photo, int upVotes, int views, String date){
+               String recommendations, String location, String photo, int upVotes, int views, String date, String user){
         this.category = category;
         this.title = title;
         this.description = description;
@@ -49,11 +51,12 @@ public class AAR {
         this.upVotes = upVotes;
         this.views = views;
         this.date = date;
+        this.user = user;
     }
 
     // create object, without place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, int upVotes, int views, String date){
+               String recommendations, String location, int upVotes, int views, String date, String user){
         this.category = category;
         this.title = title;
         this.description = description;
@@ -63,6 +66,7 @@ public class AAR {
         this.upVotes = upVotes;
         this.views = views;
         this.date = date;
+        this.user = user;
     }
 
     public String getCategory() {return category;}
@@ -108,5 +112,9 @@ public class AAR {
     public String getDate() {return date;}
 
     public void setDate(String date) {this.date = date;}
+
+    public String getUser() {return user;}
+
+    public void setUser(String user) {this.user = user;}
 
 }
