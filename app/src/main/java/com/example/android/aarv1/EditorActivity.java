@@ -168,6 +168,24 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                 // now has to remove download url too.
                 if (mSelectedImageView.getDrawable() != null) {
                     mSelectedImageView.setImageDrawable(null);
+
+                    if (mDownloadUrl != null) {
+                        // Deletes the photo from DB storage
+                        StorageReference urlRef = storage.getReferenceFromUrl(mDownloadUrl);
+                        Log.v(TAG,"this is the urlRef =" + urlRef);
+                        urlRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(EditorActivity.this, "Photo removed", Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(EditorActivity.this, "Failed to delete Photo", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
                     filePath = null;
                     mDownloadUrl = null;
 
@@ -211,29 +229,8 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     .load(filePath)
                     .fitCenter()
                     .into(mSelectedImageView);
-
-            // maybe mSelectedImageView isnt clean??
-
-
-            try {
-
-                // Loads picture into imageView, no memory issues. Avoid using bitmaps.
-                //Log.v(TAG,"glide applying image to mSelectedImageView");
-                //Glide.with(mSelectedImageView.getContext())
-                 //       .load(filePath)
-                 //       .fitCenter()
-                 //       .into(mSelectedImageView);
-
-                // Once the image is set, remove the text and button for adding an image
-                //mPhotoPickerTextView.setVisibility(View.GONE);
-                //mPhotoPickerButton.setVisibility(View.GONE);
-
-            } catch (Exception e){
-                e.printStackTrace();
-            }
                 }
             }
-
     /**
      * Setup the dropdown spinner that allows the user to select the category of the AAR and the Location
      */
@@ -335,6 +332,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             pd.show();
             //
             StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
+            // what can I do here instead of getLastPathSegment()??
             Log.v(TAG,"this is the childRef" + childRef);
 
             // upload the image
@@ -566,8 +564,24 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_delete_aar:
-                // Delete the aar from here
-                // now... how do I delete an aar from the data base?
+
+                // Delete Photo from db Storage
+                if (mDownloadUrl != null) {
+                    StorageReference urlRef = storage.getReferenceFromUrl(mDownloadUrl);
+                    Log.v(TAG,"this is the urlRef =" + urlRef);
+                    urlRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Toast.makeText(EditorActivity.this, "Photo removed", Toast.LENGTH_SHORT).show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(EditorActivity.this, "Failed to delete Photo", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                // Delete the entire AAR from db
                 db.collection("aars").document(mAarId).delete()
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
