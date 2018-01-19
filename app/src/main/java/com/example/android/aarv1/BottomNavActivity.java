@@ -9,28 +9,39 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.android.aarv1.model.UserProfile;
 import com.example.android.aarv1.viewmodel.MainActivityViewModel;
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-
 public class BottomNavActivity extends AppCompatActivity implements
         MainFragment.OnFragmentInteractionListener,
         EditsFragment.OnFragmentInteractionListener,
         SavedFragment.OnFragmentInteractionListener,
-        FilterDialogFragment.FilterListener {
+        FilterDialogFragment.FilterListener, EventListener<DocumentSnapshot> {
 
     // RC (Request code) for user Sign in
     public static final int RC_SIGN_IN = 1;
@@ -39,6 +50,9 @@ public class BottomNavActivity extends AppCompatActivity implements
     private FirebaseFirestore db;
     private MainActivityViewModel mViewModel;
     private FirebaseAuth mFirebaseAuth;
+    private FirebaseFirestore mFirestore;
+    private DocumentReference mUserProfileRef;
+    private ListenerRegistration mUserProfileRegistration; // for onEvent
 
     // limits the amount of aars we get back... want a limit?
     private static final int LIMIT = 50;
@@ -82,6 +96,8 @@ public class BottomNavActivity extends AppCompatActivity implements
 
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
+        // initialize firebase Firestore db
+        db = FirebaseFirestore.getInstance();
 
         //this allows us to open up to the main fragment initially
         if (savedInstanceState == null) {
@@ -96,7 +112,7 @@ public class BottomNavActivity extends AppCompatActivity implements
         // What do I need to do to update the view Model??
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
 
-        db = FirebaseFirestore.getInstance();
+        //mUserProfileRef = db.collection("users").document("empty_user");
     }
 
     @Override
@@ -108,7 +124,24 @@ public class BottomNavActivity extends AppCompatActivity implements
             startSignIn();
             return;
         }
+
+        // this is a listener for the firestore to know to be accessed? essentially?
+        //mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
+
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // removes listener for onEvent I believe
+        if(mUserProfileRegistration!= null) {
+            mUserProfileRegistration.remove();
+            mUserProfileRegistration = null;
+        }
+    }
+
+
 
     // Used for Signing in
     @Override
@@ -120,6 +153,9 @@ public class BottomNavActivity extends AppCompatActivity implements
             if (resultCode != RESULT_OK && shouldStartSignIn()) {
                 startSignIn();
             }
+
+            mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
+            mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
         }
     }
 
@@ -143,6 +179,8 @@ public class BottomNavActivity extends AppCompatActivity implements
                 RC_SIGN_IN);
 
         mViewModel.setIsSigningIn(true);
+
+        // get the current user... here???
     }
 
     @Override
@@ -240,4 +278,62 @@ public class BottomNavActivity extends AppCompatActivity implements
 
     }
 
+    @Override
+    public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+        if (e != null) {
+            Log.w(TAG, "aar:onEvent", e);
+            return;
+        }
+        if (documentSnapshot.exists()) {
+            Log.v(TAG,"it does indeed exist");
+            //onAarLoaded(documentSnapshot.toObject(AAR.class));
+            documentSnapshot.toObject(UserProfile.class);
+            // idk if this will actually work...
+        } else {
+
+            generateNewUserProfile();
+            Log.v(TAG, "it does not exist");
+            // so we need to creaet it... here??
+        }
+
+    }
+
+    protected void generateNewUserProfile(){
+        // what do you want to do here
+        // input is the users info
+        // output is a generated POJO of UserProfile that I return?? nah... just created.
+
+        // get the current user ID and adds it to the AAR POJO, has to have it...
+        final String currentUserId = mFirebaseAuth.getUid();
+        mFirebaseAuth.getCurrentUser();
+        // it is not created yet...
+        Log.v(TAG,"CurrentUserId" + currentUserId);
+
+        Date hasTimeStamp= Calendar.getInstance().getTime();
+
+        mUserProfileRef = db.collection("users").document(currentUserId);
+
+        UserProfile userProfile = new UserProfile();
+        userProfile.setUserId(mFirebaseAuth.getCurrentUser().getUid());
+        userProfile.setUserName(mFirebaseAuth.getCurrentUser().getDisplayName());
+        userProfile.setUserEmail(mFirebaseAuth.getCurrentUser().getEmail());
+        userProfile.setTimestamp(hasTimeStamp);
+
+        ArrayList<String> empty_list = new ArrayList<String>();
+        userProfile.setListUpVotes(empty_list);
+
+        mUserProfileRef.set(userProfile)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.v(TAG,"new User added");
+                    }
+                }). addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.v(TAG,"Unable to add new User");
+            }
+        });
+
+    }
 }

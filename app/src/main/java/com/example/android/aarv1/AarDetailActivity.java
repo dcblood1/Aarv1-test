@@ -13,9 +13,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.android.aarv1.model.AAR;
+import com.example.android.aarv1.model.UserProfile;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -70,7 +72,10 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
 
     private FirebaseFirestore mFirestore;
     private DocumentReference mAarRef;
+    private DocumentReference mUserProfileRef;
     private ListenerRegistration mAarRegistration;
+    private FirebaseAuth mFirebaseAuth;
+    private String mAarId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,16 +84,25 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         ButterKnife.bind(this);
 
         // Get aar ID from extras
-        String aarId = getIntent().getExtras().getString(KEY_AAR_ID);
-        if (aarId == null) {
+        mAarId = getIntent().getExtras().getString(KEY_AAR_ID);
+        if (mAarId == null) {
             throw new IllegalArgumentException("Must pass extra " + KEY_AAR_ID);
         }
+        Log.v(TAG,"this is the mAarId" + mAarId);
 
         // Initialize Firestore
         mFirestore = FirebaseFirestore.getInstance();
+        // initialize firebase authentication
+        mFirebaseAuth = FirebaseAuth.getInstance();
 
-        // Get reference to the aars
-        mAarRef = mFirestore.collection("aars").document(aarId);
+        // Get reference to the aars and user profile...
+        mAarRef = mFirestore.collection("aars").document(mAarId);
+        mUserProfileRef = mFirestore.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
+
+        //mUserProfileRef = mFirestore.collection("users").document(); // need to get current user...
+        // initially need to save the user profile to the db...
+
+        // Do I want to manually
 
     }
 
@@ -96,7 +110,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     protected void onStart() {
         super.onStart();
 
-        // idk what this does
+        // adds listener that triggers onEvent
         mAarRegistration = mAarRef.addSnapshotListener(this);
 
     }
@@ -105,12 +119,11 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     protected void onStop() {
         super.onStop();
 
-        // I also dont know what this does
+        // triggers the onEvent
         if(mAarRegistration != null) {
             mAarRegistration.remove();
             mAarRegistration = null;
         }
-
     }
 
     // when the back button is pressed, it sends the user back to the previous page...
@@ -121,7 +134,8 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
 
 
     // supporting method for adding upVote to an AAR
-    private Task<Void> addUpVote(final DocumentReference aarRef){
+    // also need to add up vote to the userProfile
+    private Task<Void> addUpVote(final DocumentReference aarRef , final DocumentReference userProfileRef ){
 
         return mFirestore.runTransaction(new Transaction.Function<Void>() {
             @Nullable
@@ -129,16 +143,29 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
             public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
 
                 AAR aar = transaction.get(aarRef).toObject(AAR.class);
+                UserProfile userProfile = transaction.get(userProfileRef).toObject(UserProfile.class);
 
-                // Compute new number of upVotes
-                int newUpVotes = aar.getUpVotes()+ 1;
+                // if the aarId is already in the list of users upVotes, remove it, or add it.
+                if (userProfile.getListUpVotes().contains(mAarId)) {
 
-                // Set new restaurant info
-                aar.setUpVotes(newUpVotes);
+                    int newUpVotes = aar.getUpVotes() - 1;
+                    aar.setUpVotes(newUpVotes);
+                    userProfile.removeUserUpVote(mAarId);
+                    transaction.set(userProfileRef,userProfile);
 
-                // Commit to firestore
-                transaction.set(aarRef,aar);
+                    // Commit to firestore
+                    transaction.set(aarRef,aar);
 
+                } else {
+
+                    int newUpVotes = aar.getUpVotes()+ 1;
+                    aar.setUpVotes(newUpVotes);
+                    userProfile.addUserUpVote(mAarId);
+                    transaction.set(userProfileRef,userProfile);
+
+                    // Commit to firestore
+                    transaction.set(aarRef,aar);
+                }
                 return null;
             }
         });
@@ -147,8 +174,9 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     // Adds an upvote
     @OnClick(R.id.up_vote_button)
     public void onUpVote(){
+
         // In a transaction, add the new rating and update the aggregate totals
-        addUpVote(mAarRef)
+        addUpVote(mAarRef, mUserProfileRef)
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -173,7 +201,6 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
             Log.w(TAG, "aar:onEvent", e);
             return;
         }
-
         onAarLoaded(documentSnapshot.toObject(AAR.class));
     }
 

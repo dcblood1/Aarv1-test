@@ -321,6 +321,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
 
         // get the current user ID and adds it to the AAR POJO, has to have it...
         final String currentUserId = mFirebaseAuth.getUid();
+        // Might need this to be a token?? idk why... creates a security issue?
 
         if (currentUserId == null) {
             onBackPressed();
