@@ -3,6 +3,7 @@ package com.example.android.aarv1;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -37,6 +38,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -222,8 +226,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK && data != null && data.getData() != null){
             filePath = data.getData();
-            Log.v("EditorActivity.java", "filePath after getDate() is: " + filePath);
-            Log.v(TAG,"glide applying image to mSelectedImageView");
+            Log.v("EditorActivity.java", "filePath after getData() is: " + filePath);
 
             Glide.with(this)
                     .load(filePath)
@@ -336,7 +339,8 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             // what can I do here instead of getLastPathSegment()??
             Log.v(TAG,"this is the childRef" + childRef);
 
-            // upload the image
+            // upload the image to Storage... Here is where we need to change the size??
+            // TODO: Change the file size to useable data
             UploadTask uploadTask = childRef.putFile(filePath);
 
             Log.v(TAG,"About to begin the upload");
@@ -347,6 +351,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     pd.dismiss();
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
+
                     mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
 
                     // Create a new AAR POJO, then set value inputs
@@ -600,6 +605,49 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         }
         finish();
         return super.onOptionsItemSelected(item);
+    }
 
+
+    public File saveBitmapToFile(File file){
+        try {
+
+            // BitmapFactory options to downsize the image
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            o.inSampleSize = 6;
+            // factor of downsizing the image
+
+            FileInputStream inputStream = new FileInputStream(file);
+            //Bitmap selectedBitmap = null;
+            BitmapFactory.decodeStream(inputStream, null, o);
+            inputStream.close();
+
+            // The new size we want to scale to
+            final int REQUIRED_SIZE=75;
+
+            // Find the correct scale value. It should be the power of 2.
+            int scale = 1;
+            while(o.outWidth / scale / 2 >= REQUIRED_SIZE &&
+                    o.outHeight / scale / 2 >= REQUIRED_SIZE) {
+                scale *= 2;
+            }
+
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = scale;
+            inputStream = new FileInputStream(file);
+
+            Bitmap selectedBitmap = BitmapFactory.decodeStream(inputStream, null, o2);
+            inputStream.close();
+
+            // here i override the original image file
+            file.createNewFile();
+            FileOutputStream outputStream = new FileOutputStream(file);
+
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
+
+            return file;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

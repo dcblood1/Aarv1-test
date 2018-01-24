@@ -20,8 +20,8 @@
     <!-- Need a 72dp star or upvote or something -->
     <item
         android:id="@+id/navigation_saves"
-        android:icon="@drawable/tab_news"
-        android:title="Likes"
+        android:icon="@drawable/icons8slideupfilled100"
+        android:title="Up Voted"
         app:showAsAction="ifRoom"
         />
 

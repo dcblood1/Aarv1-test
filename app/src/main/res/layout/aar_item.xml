@@ -12,7 +12,7 @@
         android:layout_height="96dp"
         android:background="#757575"
         android:scaleType="centerCrop"
-        android:src="@drawable/food_1" />
+        />
 
     <TextView
         android:id="@+id/aar_title"

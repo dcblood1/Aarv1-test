@@ -218,14 +218,14 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         mUpVotesTextView.setText(getString(R.string.fmt_up_votes,aar.getUpVotes()));
         mTimeView.setText(getString(R.string.fmt_time,aar.getDate()));
 
-        // Background Image
+        // Background Image, set with taken photo, otherwise use pic
         if (aar.getPhoto() !=  null) {
             Glide.with(mImageView.getContext())
                     .load(aar.getPhoto())
                     .into(mImageView);
         } else {
             Glide.with(mImageView.getContext())
-                    .load(R.drawable.food_1)
+                    .load(R.drawable.rig_pic_501)
                     .into(mImageView);
         }
     }

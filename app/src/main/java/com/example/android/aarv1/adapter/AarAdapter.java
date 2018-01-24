@@ -114,19 +114,18 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
 
 
 
-            // Load aar image into imageView, using Glide 3rd party library
-            // need to add if aar.getPhoto() == null then do something else...
-
+            // Load image into adapter, otherwise load default rig photo
             if (aar.getPhoto() !=  null) {
                 Glide.with(imageView.getContext())
                         .load(aar.getPhoto())
                         .into(imageView);
             } else {
                 Glide.with(imageView.getContext())
-                        .load(R.drawable.food_1)
+                        .load(R.drawable.rig_pic_501)
                         .into(imageView);
             }
 
+            // Click on item to bring up aar activity detail
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
