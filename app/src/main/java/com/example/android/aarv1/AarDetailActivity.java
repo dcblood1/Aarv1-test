@@ -145,25 +145,29 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                 AAR aar = transaction.get(aarRef).toObject(AAR.class);
                 UserProfile userProfile = transaction.get(userProfileRef).toObject(UserProfile.class);
 
-                // if the aarId is already in the list of users upVotes, remove it, or add it.
-                if (userProfile.getListUpVotes().contains(mAarId)) {
+                // if the userId == true in the aar userUpVotes, remove it. take a vote off.
+                if (aar.getUserUpVotes().containsKey(getUid())){
 
                     int newUpVotes = aar.getUpVotes() - 1;
                     aar.setUpVotes(newUpVotes);
+                    //aar.setUserUpVotes.(getUid(), true);
+                    aar.userUpVotes.remove(getUid());
+
                     userProfile.removeUserUpVote(mAarId);
                     transaction.set(userProfileRef,userProfile);
 
                     // Commit to firestore
                     transaction.set(aarRef,aar);
-
                 } else {
 
                     int newUpVotes = aar.getUpVotes()+ 1;
                     aar.setUpVotes(newUpVotes);
+                    aar.userUpVotes.put(getUid(),true);
                     userProfile.addUserUpVote(mAarId);
-                    transaction.set(userProfileRef,userProfile);
+
 
                     // Commit to firestore
+                    transaction.set(userProfileRef,userProfile);
                     transaction.set(aarRef,aar);
                 }
                 return null;
@@ -224,5 +228,9 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                     .load(R.drawable.food_1)
                     .into(mImageView);
         }
+    }
+
+    public String getUid(){
+        return mFirebaseAuth.getCurrentUser().getUid();
     }
 }

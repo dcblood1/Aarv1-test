@@ -109,8 +109,6 @@ public class EditsFragment extends Fragment implements
 
         //initialize Firestore and main RecyclerView
         init();
-
-
     }
 
     @Override
@@ -170,11 +168,7 @@ public class EditsFragment extends Fragment implements
         Intent editor_intent = new Intent(getActivity(), EditorActivity.class);
         editor_intent.putExtra(EditorActivity.KEY_AAR_ID, aar.getId());
 
-        // Get reference to the aars
-        mAarRef = db.collection("aars").document(aar.getId());
-
-        // need to call
-
+        // start activity
         startActivity(editor_intent);
 
     }

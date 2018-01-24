@@ -100,6 +100,7 @@ public class BottomNavActivity extends AppCompatActivity implements
         db = FirebaseFirestore.getInstance();
 
         //this allows us to open up to the main fragment initially
+        Log.v(TAG,"savedInstanceState = " + savedInstanceState);
         if (savedInstanceState == null) {
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.content, new MainFragment()).commit();
@@ -112,7 +113,6 @@ public class BottomNavActivity extends AppCompatActivity implements
         // What do I need to do to update the view Model??
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
 
-        //mUserProfileRef = db.collection("users").document("empty_user");
     }
 
     @Override
@@ -125,7 +125,11 @@ public class BottomNavActivity extends AppCompatActivity implements
             return;
         }
 
+        mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
+        mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
+
         // this is a listener for the firestore to know to be accessed? essentially?
+        // This is called in onActivity Result now...
         //mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
 
     }
@@ -154,8 +158,9 @@ public class BottomNavActivity extends AppCompatActivity implements
                 startSignIn();
             }
 
-            mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
-            mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
+            //// USED TO BE HERE///
+            //mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
+            //mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
         }
     }
 
@@ -230,6 +235,8 @@ public class BottomNavActivity extends AppCompatActivity implements
     @Override
     public void onFilter(Filters filters) {
 
+        Log.v(TAG,"onFilter in BottomNavActivity being called");
+
         // Construct query basic query
         Query query = db.collection("aars");
 
@@ -288,12 +295,26 @@ public class BottomNavActivity extends AppCompatActivity implements
             Log.v(TAG,"it does indeed exist");
             //onAarLoaded(documentSnapshot.toObject(AAR.class));
             documentSnapshot.toObject(UserProfile.class);
-            // idk if this will actually work...
+
+            Log.v(TAG,"passing new Bundle of SavedFragment");
+
+            // This will pass data to the fragment from this activity... what do I need to pass? The filters right??
+            Bundle bundle = new Bundle();
+            //bundle.putString("filters", String.valueOf(filters));
+            //bundle.putString("filters", String.valueOf(mViewModel));
+            // So you really are just passing all of the usable data to the fragment?
+            // is it just allowing the viewmodel to connect or what??
+            bundle.putString("user",mFirebaseAuth.getCurrentUser().getUid());
+
+            // set Fragmentclass Arguments
+            SavedFragment fragobj = new SavedFragment();
+            fragobj.setArguments(bundle);
+
         } else {
 
             generateNewUserProfile();
             Log.v(TAG, "it does not exist");
-            // so we need to creaet it... here??
+            // Create user Profile
         }
 
     }

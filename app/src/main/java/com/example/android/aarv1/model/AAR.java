@@ -2,6 +2,9 @@ package com.example.android.aarv1.model;
 
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by Dillon on 12/1/2017.
  */
@@ -10,7 +13,7 @@ import com.google.firebase.firestore.IgnoreExtraProperties;
 @IgnoreExtraProperties
 public class AAR {
 
-    // these are used for the filters, HAS TO BE A FIELD IN THE AAR... DUMMY
+    // these are used for the filters, HAS TO BE A FIELD IN THE AAR TO BE SORTED BY.
     public static final String FIELD_LOCATION = "location";
     public static final String FIELD_CATEGORY = "category";
     public static final String FIELD_DATE = "date";
@@ -34,13 +37,15 @@ public class AAR {
     private int views;
     private int hotness;
     private String user;
+    public Map<String, Boolean> userUpVotes = new HashMap<>();
 
     // firebase requires you to have object with no calls in it.
     public AAR() {}
 
     // create object, with place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, String photo, int upVotes, int views, String date, String user){
+               String recommendations, String location, String photo, int upVotes,
+               int views, String date, String user, Map<String,Boolean> userUpVotes){
         this.category = category;
         this.title = title;
         this.description = description;
@@ -52,11 +57,14 @@ public class AAR {
         this.views = views;
         this.date = date;
         this.user = user;
+        this.userUpVotes = userUpVotes;
+
     }
 
     // create object, without place for photo
     public AAR(String category, String title, String description, String cause,
-               String recommendations, String location, int upVotes, int views, String date, String user){
+               String recommendations, String location, int upVotes,
+               int views, String date, String user, Map<String, Boolean> userUpVotes){
         this.category = category;
         this.title = title;
         this.description = description;
@@ -67,6 +75,7 @@ public class AAR {
         this.views = views;
         this.date = date;
         this.user = user;
+        this.userUpVotes = userUpVotes;
     }
 
     public String getCategory() {return category;}
@@ -116,5 +125,9 @@ public class AAR {
     public String getUser() {return user;}
 
     public void setUser(String user) {this.user = user;}
+
+    public Map<String,Boolean> getUserUpVotes(){return this.userUpVotes;}
+
+    public void setUserUpVotes( Map<String, Boolean> userUpVotes) {this.userUpVotes = userUpVotes;}
 
 }

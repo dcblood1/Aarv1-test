@@ -363,6 +363,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     aar.setPhoto(mDownloadUrl);
                     aar.setUser(currentUserId);
 
+
                     // Add a new document with a generated ID and pass into the Firebase Storage
                         // hasExtras is checking if this is an existing aar or new.
                     if (mHasExtras) {

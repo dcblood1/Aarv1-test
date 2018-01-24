@@ -15,12 +15,15 @@ import android.widget.TextView;
 
 import com.example.android.aarv1.adapter.AarAdapter;
 import com.example.android.aarv1.model.AAR;
+import com.example.android.aarv1.model.UserProfile;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import butterknife.BindView;
@@ -35,7 +38,7 @@ import butterknife.ButterKnife;
  * Use the {@link SavedFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedListener {
+public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedListener, EventListener<DocumentSnapshot> {
 
     private static final String TAG = "SavedFragment";
 
@@ -43,7 +46,9 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     private FirebaseFirestore db;
     private AarAdapter mAarAdapter;
     private DocumentReference mAarRef; // used for selecting an aar
+    private DocumentReference mUserProfileRef;
     private FirebaseAuth mFirebaseAuth;
+    private ListenerRegistration mUserRegistration;
 
     // limits the amount of aars we get back
     private static final int LIMIT = 50;
@@ -59,11 +64,9 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     RecyclerView mSavedRecycler;
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "user";
 
-    private String mParam1;
-    private String mParam2;
+    public String mUser;
 
     private OnFragmentInteractionListener mListener;
 
@@ -75,15 +78,13 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param user Parameter 1.
      * @return A new instance of fragment SavedFragment.
      */
-    public static SavedFragment newInstance(String param1, String param2) {
+    public static SavedFragment newInstance(String user) {
         SavedFragment fragment = new SavedFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, user);
         fragment.setArguments(args);
         return fragment;
     }
@@ -91,9 +92,11 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(TAG,"about to run getArguments()" + getArguments());
+
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mUser = getArguments().getString(ARG_PARAM1);
+            Log.v(TAG,"this is mUser in SavedFragment" + mUser);
         }
 
         // Enable Firestore logging
@@ -102,8 +105,21 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
 
+        //mUserProfileRef = db.collection("users").document("QeZbG2U2ySaP1b2PWZHj3eE3v9r2");
+
+        Log.v(TAG,"mFirebaseAuth.getCurrentUser()" + mFirebaseAuth.getCurrentUser().getDisplayName());
+
+        //Log.v(TAG,"mUserProfileRef" + mUserProfileRef);
+
         //initialize Firestore and main RecyclerView
         init();
+
+
+        Log.v(TAG,"mUser inOnCreate bottom" + mUser);
+
+        String mUserTest = mUser;
+        mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
+
     }
 
     @Override
@@ -142,6 +158,53 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        // triggers the onEvent
+        if(mUserRegistration!= null) {
+            mUserRegistration.remove();
+            mUserRegistration = null;
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        Log.v(TAG,"mUserProfile Ref = " + mUserProfileRef);
+
+        // adds listener that triggers onEvent Can I do this for fragments?
+        mUserRegistration = mUserProfileRef.addSnapshotListener(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.v(TAG,"mUserProfile Ref = " + mUserProfileRef);
+
+        // adds listener that triggers onEvent Can I do this for fragments?
+        //mUserRegistration = mUserProfileRef.addSnapshotListener(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // triggers the onEvent
+        if(mUserRegistration!= null) {
+            mUserRegistration.remove();
+            mUserRegistration = null;
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // triggers the onEvent
+        //if(mUserRegistration!= null) {
+        //    mUserRegistration.remove();
+        //    mUserRegistration = null;
+        //}
     }
 
     @Override
@@ -154,12 +217,15 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
         Intent detail_intent = new Intent(getActivity(), AarDetailActivity.class);
         detail_intent.putExtra(AarDetailActivity.KEY_AAR_ID, aar.getId());
 
-        // Get reference to the aars
-        mAarRef = db.collection("aars").document(aar.getId());
+        // Get reference to the aars why???????
+        //mAarRef = db.collection("aars").document(aar.getId());
 
         // need to call
         startActivity(detail_intent);
     }
+
+
+
 
     /**
      * This interface must be implemented by activities that contain this
@@ -179,22 +245,8 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     protected void init(){
         db = FirebaseFirestore.getInstance();
 
-        // grab the initial query of Firestore Collection "aars"
-        // So I need to cycle through the users up voted posts, then
-        // need a for loop. throw it in the mquery...
-        // this will be interesting...
+        mQuery = db.collection("aars").whereEqualTo("userUpVotes." + getUid(),true);
 
-        // So will there necessarily be a query? // no right?
-
-        //mQuery = db.collection("aars").orderBy("date", Query.Direction.DESCENDING);
-
-        //mQuery = db.collection("aars").document("7iFYJULGbwC7tElvnPUG");
-
-        mQuery = db.collection("aars").whereEqualTo("user",mFirebaseAuth.getUid()).orderBy("date", Query.Direction.DESCENDING);
-
-        mFirebaseAuth.getCurrentUser().getUid();
-
-        Log.v(TAG,"this is the mquery in the SavedFragment" + mQuery);
     }
 
     // Initializes the Firestore adapter with the appropriate options
@@ -206,6 +258,7 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
                 .setQuery(mQuery, AAR.class)
                 .setLifecycleOwner(this)
                 .build();
+
 
         // create new AarAdapter, taking in the Query, the Firestore options(response), and the listener for the onClick
         mAarAdapter = new AarAdapter(mQuery,response, this){
@@ -246,10 +299,36 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
         mSavedRecycler.setAdapter(mAarAdapter);
     }
 
-    public void userSavedAars() {
 
 
+    // Need to do the onEvent Listener.
+    // Then I can get all of the userProfile list of likes...
+    // save that list to a
 
+    @Override
+    public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+        if (e != null) {
+            Log.w(TAG, "aar:onEvent", e);
+            return;
+        }
+        //onAarLoaded(documentSnapshot.toObject(AAR.class));
+        userSavedAars(documentSnapshot.toObject(UserProfile.class));
+
+    }
+
+    // what were you trying to do with this? // Need to get all of the users liked aars here... then pass it into a query...
+    public void userSavedAars(UserProfile userProfile) {
+
+
+        //userProfile.getListUpVotes();
+        //Log.v(TAG,"This is the list of upVotes" + userProfile.getListUpVotes());
+        //Log.v(TAG,"This is .get(0)" + userProfile.getListUpVotes().get(0));
+
+
+    }
+
+    public String getUid(){
+        return mFirebaseAuth.getCurrentUser().getUid();
     }
 
 }

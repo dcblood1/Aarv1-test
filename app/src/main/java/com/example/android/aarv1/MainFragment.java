@@ -316,6 +316,7 @@ public class MainFragment extends Fragment implements
         // add view to the AAR
         addView(mAarRef);
 
+
         startActivity(detail_intent);
     }
 
