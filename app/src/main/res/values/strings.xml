@@ -1,5 +1,10 @@
 <resources>
+
     <string name="app_name">After Action Review</string>
+
+    <!-- ToolBar for fragments-->
+    <string name="edit_tool_bar">Edit AAR\'s</string>
+    <string name="up_vote_tool_bar">Up Voted AAR\'s</string>
 
     <string name="fmt_up_votes" translatable="false">%d</string>
     <string name="fmt_time" translatable="false">%s</string>

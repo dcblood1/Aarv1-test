@@ -150,7 +150,6 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
 
                     int newUpVotes = aar.getUpVotes() - 1;
                     aar.setUpVotes(newUpVotes);
-                    //aar.setUserUpVotes.(getUid(), true);
                     aar.userUpVotes.remove(getUid());
 
                     userProfile.removeUserUpVote(mAarId);
@@ -222,6 +221,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         if (aar.getPhoto() !=  null) {
             Glide.with(mImageView.getContext())
                     .load(aar.getPhoto())
+                    .centerCrop() // fitCenter inputs the entire image... but its garbage, centerCrop cuts off the edges...
                     .into(mImageView);
         } else {
             Glide.with(mImageView.getContext())

@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.example.android.aarv1.model.UserProfile;
 import com.example.android.aarv1.viewmodel.MainActivityViewModel;
@@ -73,13 +74,16 @@ public class BottomNavActivity extends AppCompatActivity implements
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
+                    mToolbar.setVisibility(View.VISIBLE);
                     switchToMainFragment();
                     return true;
                 case R.id.navigation_edits:
                     switchToEditsFragment();
+                    mToolbar.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_saves:
                     switchToSavedFragment();
+                    mToolbar.setVisibility(View.GONE);
                     return true;
             }
             return false;

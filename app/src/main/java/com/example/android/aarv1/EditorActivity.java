@@ -3,7 +3,6 @@ package com.example.android.aarv1;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -38,12 +37,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * Created by Dillon on 12/1/2017.
@@ -332,19 +330,178 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         }
 
         // If there is a photo, then go through this and add image to storage, then upload to db with file
-        if (filePath != null){
+        if (filePath != null) {
             pd.show();
             //
             StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
             // what can I do here instead of getLastPathSegment()??
-            Log.v(TAG,"this is the childRef" + childRef);
+            Log.v(TAG, "this is the childRef" + childRef);
 
             // upload the image to Storage... Here is where we need to change the size??
             // TODO: Change the file size to useable data
+            StorageReference byteRefTest = storageRef.child(hasTitle + filePath.getLastPathSegment() + getSaltString());
+            // Get the data from an imageView
+            mSelectedImageView.setDrawingCacheEnabled(true); // dunno what this does...
+            mSelectedImageView.buildDrawingCache();
+            Bitmap bitmap = mSelectedImageView.getDrawingCache();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos); // 100 is 1.3 MB, 75 is 135 Kb, 90 is 250 kb
+            byte[] data = baos.toByteArray();
+
+            UploadTask byteUploadTask = byteRefTest.putBytes(data);
+            byteUploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    pd.dismiss();
+                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
+
+                    // Create a new AAR POJO, then set value inputs
+                    AAR aar = new AAR();
+
+                    aar.setCategory(mCategory);
+                    aar.setTitle(hasTitle);
+                    aar.setDescription(hasDescription);
+                    aar.setCause(hasCause);
+                    aar.setRecommendations(hasRecommendations);
+                    aar.setLocation(mLocation);
+                    aar.setUpVotes(mUpVotes);
+                    aar.setViews(mViews);
+                    aar.setPhoto(mDownloadUrl);
+                    aar.setUser(currentUserId);
+
+
+                    // Add a new document with a generated ID and pass into the Firebase Storage
+                    // hasExtras is checking if this is an existing aar or new.
+                    if (mHasExtras) {
+                        db.collection("aars").document(mAarId)
+                                .set(aar)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Toast.makeText(EditorActivity.this, "AAR updated", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                        // This updates the date with the first date it was created
+                        db.collection("aars").document(mAarId).update("date", mDate);
+                    } else {
+                        // This set date is moved down... so it does not get updated when a user edits their aar
+                        aar.setDate(hasFormattedDate);
+                        db.collection("aars")
+                                .add(aar)
+                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                          @Override
+                                                          public void onSuccess(DocumentReference documentReference) {
+                                                              Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                                                              Toast.makeText(EditorActivity.this, "AAR Successfully Added", Toast.LENGTH_SHORT).show();
+                                                          }
+                                                      }
+                                )
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w("EditorActivity.java", "Error adding document", e);
+                                        Toast.makeText(EditorActivity.this, "Upload Failure", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
+
+                    // closes EditorActivity
+                    pd.dismiss();
+                    finish();
+
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    pd.dismiss();
+                    Toast.makeText(EditorActivity.this, "Upload Failed -> " + e, Toast.LENGTH_SHORT).show();
+
+                    // closes EditorActivity
+                    finish();
+                }
+            });
+
+        }else {
+            // ELSE if no image is selected.
+            // Create a new AAR POJO,
+            AAR aar = new AAR();
+            aar.setCategory(mCategory);
+            aar.setTitle(hasTitle);
+            aar.setDescription(hasDescription);
+            aar.setCause(hasCause);
+            aar.setRecommendations(hasRecommendations);
+            aar.setLocation(mLocation);
+            aar.setUpVotes(mUpVotes);
+            aar.setViews(mViews);
+            aar.setDate(hasFormattedDate);
+            aar.setUser(currentUserId);
+
+            if (mHasExtras) {
+                db.collection("aars").document(mAarId)
+                        .set(aar)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(EditorActivity.this, "AAR updated", Toast.LENGTH_SHORT).show();
+                                pd.dismiss();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
+                                pd.dismiss();
+                            }
+                        });
+                // if the aar alreadys exists, then keep the date the same it was initially created
+                db.collection("aars").document(mAarId).update("date", mDate);
+                // if a photo already exists, will keep it the same
+                if (mDownloadUrl != null) {
+                    db.collection("aars").document(mAarId).update("photo", mDownloadUrl);
+                }
+            } else {
+                // This set date is moved down... so it does not get updated when a user edits their aar
+                aar.setDate(hasFormattedDate);
+
+                // Add a new document with a generated ID and pass into the Firebase DB
+                db.collection("aars")
+                        .add(aar)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                  @Override
+                                                  public void onSuccess(DocumentReference documentReference) {
+                                                      Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                                                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+                                                  }
+                                              }
+                        )
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w("EditorActivity.java", "Error adding document", e);
+                            }
+                        });
+
+            }
+
+            // closes EditorActivity
+            pd.dismiss();
+            finish();
+
+        }}
+
+            // TODO: end of testing
+
+/**
+            // Upload the image to storage
             UploadTask uploadTask = childRef.putFile(filePath);
-
-            Log.v(TAG,"About to begin the upload");
-
             uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -495,6 +652,10 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         }
     }
 
+
+    **/
+
+
     /**
      * Return the formatted date string (i.e. "Mar 3, 1984") from a Date object.
      */
@@ -588,7 +749,10 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                         }
                     });
                 }
-                // Delete the entire AAR from db
+                // Then Delete the entire AAR from the db, need to see if it is in the users profile of up votes... every users...
+                // or just eliminate it when going through the other deals...
+                // when you figure out how to query properly, then remove it then??
+
                 db.collection("aars").document(mAarId).delete()
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
@@ -607,47 +771,18 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         return super.onOptionsItemSelected(item);
     }
 
-
-    public File saveBitmapToFile(File file){
-        try {
-
-            // BitmapFactory options to downsize the image
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            o.inSampleSize = 6;
-            // factor of downsizing the image
-
-            FileInputStream inputStream = new FileInputStream(file);
-            //Bitmap selectedBitmap = null;
-            BitmapFactory.decodeStream(inputStream, null, o);
-            inputStream.close();
-
-            // The new size we want to scale to
-            final int REQUIRED_SIZE=75;
-
-            // Find the correct scale value. It should be the power of 2.
-            int scale = 1;
-            while(o.outWidth / scale / 2 >= REQUIRED_SIZE &&
-                    o.outHeight / scale / 2 >= REQUIRED_SIZE) {
-                scale *= 2;
-            }
-
-            BitmapFactory.Options o2 = new BitmapFactory.Options();
-            o2.inSampleSize = scale;
-            inputStream = new FileInputStream(file);
-
-            Bitmap selectedBitmap = BitmapFactory.decodeStream(inputStream, null, o2);
-            inputStream.close();
-
-            // here i override the original image file
-            file.createNewFile();
-            FileOutputStream outputStream = new FileOutputStream(file);
-
-            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
-
-            return file;
-        } catch (Exception e) {
-            return null;
+    // This is used to create a random string so that the pictures will not be saved under the same file name
+    protected String getSaltString() {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 6) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
         }
+        String saltStr = salt.toString();
+        return saltStr;
     }
+
+
 }

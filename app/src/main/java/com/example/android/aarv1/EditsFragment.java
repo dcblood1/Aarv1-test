@@ -8,6 +8,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,6 +54,8 @@ public class EditsFragment extends Fragment implements
     // create global for Query
     private Query mQuery;
 
+    @BindView(R.id.edit_toolbar)
+    Toolbar mEditToolbar;
     // Bind Views using Butterknife from activity_main.xml
     @BindView(R.id.edits_empty_text_view)
     TextView editsEmptyTextView;

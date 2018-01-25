@@ -7,7 +7,21 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
+
+        <android.support.v7.widget.Toolbar
+        android:id="@+id/edit_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/AppTheme"
+        app:popupTheme="@style/Theme.AppCompat.Light.DarkActionBar"
+        app:title="@string/edit_tool_bar"
+        app:titleMarginStart="24dp"
+        app:titleTextColor="@android:color/white" />
+
+
 
         <!-- Main AAR recycler -->
         <android.support.v7.widget.RecyclerView
@@ -17,7 +31,9 @@
             android:background="@android:color/white"
             tools:listitem="@layout/aar_item"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/edit_toolbar"
+            />
 
         <TextView
             android:id="@+id/edits_empty_text_view"
