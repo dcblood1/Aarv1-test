@@ -265,7 +265,7 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
             public void onError(FirebaseFirestoreException e) {
                 super.onError(e);
                 Log.e("error",e.getMessage());
-                mSavedEmptyTextView.setText("Some error occured");
+                mSavedEmptyTextView.setText("No Up Voted AAR's in index");
             }
 
             // this removes the empty text box

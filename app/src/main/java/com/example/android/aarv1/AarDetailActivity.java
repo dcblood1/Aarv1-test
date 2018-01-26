@@ -8,10 +8,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.android.aarv1.model.AAR;
 import com.example.android.aarv1.model.UserProfile;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -70,6 +75,12 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     @BindView(R.id.up_vote_button)
     Button mUpVoteButton;
 
+    @BindView(R.id.up_vote_image_button)
+    ImageButton mUpVoteImageButton;
+
+    @BindView(R.id.image_progress_bar)
+    ProgressBar mImageProgressBar;
+
     private FirebaseFirestore mFirestore;
     private DocumentReference mAarRef;
     private DocumentReference mUserProfileRef;
@@ -99,10 +110,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         mAarRef = mFirestore.collection("aars").document(mAarId);
         mUserProfileRef = mFirestore.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
 
-        //mUserProfileRef = mFirestore.collection("users").document(); // need to get current user...
-        // initially need to save the user profile to the db...
-
-        // Do I want to manually
+        mImageProgressBar.setVisibility(View.VISIBLE);
 
     }
 
@@ -131,7 +139,6 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     public void onBackArrowClicked(View view) {
         onBackPressed();
     }
-
 
     // supporting method for adding upVote to an AAR
     // also need to add up vote to the userProfile
@@ -174,7 +181,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         });
     }
 
-    // Adds an upvote
+    // Modifies an upvote
     @OnClick(R.id.up_vote_button)
     public void onUpVote(){
 
@@ -191,7 +198,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                     public void onFailure(@NonNull Exception e) {
                         Log.d(TAG,"addUpVote Fail",e);
 
-                        Snackbar.make(findViewById(android.R.id.content), "Failed to add vote",
+                        Snackbar.make(findViewById(android.R.id.content), "Failed to change vote",
                                 Snackbar.LENGTH_SHORT).show();
                     }
                 });
@@ -217,19 +224,55 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         mUpVotesTextView.setText(getString(R.string.fmt_up_votes,aar.getUpVotes()));
         mTimeView.setText(getString(R.string.fmt_time,aar.getDate()));
 
+        // if the user has upvotes
+        if (aar.getUserUpVotes().containsKey(getUid())){
+            mUpVoteImageButton.setImageResource(R.drawable.icons8scrollup48_filled_in_color);
+        } else {
+            // if removing the upVote, then change the button back
+            mUpVoteImageButton.setImageResource(R.drawable.icons8scrollup48_notfilled);
+        }
+
+
         // Background Image, set with taken photo, otherwise use pic
         if (aar.getPhoto() !=  null) {
+
+            //Glide.with(mImageView.getContext())
+             //       .load(aar.getPhoto())
+              //      .centerCrop() // fitCenter inputs the entire image... but its garbage, centerCrop cuts off the edges...
+               //     .into(mImageView);
+
+            // all of this code is needed so that the progress bar is shown until the image is completely loaded
+            // using Glide to load image into ImageView
             Glide.with(mImageView.getContext())
                     .load(aar.getPhoto())
-                    .centerCrop() // fitCenter inputs the entire image... but its garbage, centerCrop cuts off the edges...
+                    .listener(new RequestListener<String, GlideDrawable>() {
+                        @Override
+                        public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                            mImageProgressBar.setVisibility(View.GONE);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                            mImageProgressBar.setVisibility(View.GONE);
+                            return false;
+                        }
+                    }).centerCrop()
                     .into(mImageView);
+
         } else {
+
+            // load image into imageView
             Glide.with(mImageView.getContext())
                     .load(R.drawable.rig_pic_501)
                     .into(mImageView);
+            mImageProgressBar.setVisibility(View.GONE);
         }
+
+
     }
 
+    // method used to grab string of userId
     public String getUid(){
         return mFirebaseAuth.getCurrentUser().getUid();
     }

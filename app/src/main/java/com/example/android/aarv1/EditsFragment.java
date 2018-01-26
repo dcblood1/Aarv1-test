@@ -217,7 +217,7 @@ public class EditsFragment extends Fragment implements
             public void onError(FirebaseFirestoreException e) {
                 super.onError(e);
                 Log.e("error",e.getMessage());
-                editsEmptyTextView.setText("Some error occured");
+                editsEmptyTextView.setText("Add an AAR to index");
             }
 
             // this removes the empty text box
