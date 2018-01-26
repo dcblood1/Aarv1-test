@@ -641,14 +641,14 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             String userHasRecommendations) {
 
         if (TextUtils.isEmpty(userHasTitle)){
-            mTitleEditText.setError("Please add Title");
+            mTitleEditText.setError("Please add a Title");
         }
         if (TextUtils.isEmpty(userHasDescription)) {
-            mDescriptionEditText.setError("Please add Description");
+            mDescriptionEditText.setError("Please add a Description");
 
         }
         if (TextUtils.isEmpty(userHasCause)) {
-            mCauseEditText.setError("Please add root cause");
+            mCauseEditText.setError("Please add a root cause");
 
         }
         if (TextUtils.isEmpty(userHasRecommendations)) {

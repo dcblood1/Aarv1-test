@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".AarDetailActivity"
+    >
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
@@ -148,7 +157,7 @@
             android:id="@+id/time_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/up_vote_button"
+            android:layout_below="@+id/recommendations_text_view"
             style="@style/DetailNameStyle"
             android:text="Date AAR submitted: "
             />
@@ -157,7 +166,7 @@
             android:id="@+id/time_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@id/up_vote_button"
+            android:layout_below="@+id/recommendations_text_view"
             android:layout_toRightOf="@id/time_name"
             style="@style/DetailTextStyle"
             android:text="Time created"
@@ -168,10 +177,9 @@
             android:layout_width="88dp"
             android:layout_height="48dp"
             android:layout_alignParentBottom="true"
+            android:layout_below="@+id/time_view"
             android:text="Up Vote!"
             />
-
-
 
         <TextView
             android:id="@+id/up_votes_view"
@@ -194,5 +202,5 @@
 
     </RelativeLayout>
 
-
 </RelativeLayout>
+</ScrollView>

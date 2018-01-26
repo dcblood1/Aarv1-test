@@ -191,6 +191,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG,"addUpVote added");
+
                     }
                 })
                 .addOnFailureListener(this, new OnFailureListener() {
