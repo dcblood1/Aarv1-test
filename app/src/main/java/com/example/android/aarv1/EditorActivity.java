@@ -135,7 +135,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         mDescriptionEditText = (EditText) findViewById(R.id.edit_aar_description);
         mCauseEditText= (EditText) findViewById(R.id.edit_aar_cause);
         mRecommendationsEditText = (EditText) findViewById(R.id.edit_aar_recommendations);
-        //mLocationEditText = (EditText) findViewById(R.id.edit_aar_location);
         mPhotoPickerButton = (ImageButton) findViewById(R.id.photoPickerButton);
         mCategorySpinner = (Spinner) findViewById(R.id.edit_aar_category_spinner);
         mLocationSpinner = (Spinner) findViewById(R.id.edit_aar_location);
@@ -301,6 +300,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     }
 
     // method for when the Save AAR Button is clicked
+    // need to check and make sure the form is filled out correctly...
     public void saveAAR(View view) {
 
         // grabs all of the necessary user inputs
@@ -317,7 +317,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         final String hasRecommendations = recommendationsEditText.getText().toString().trim();
 
         // gets the current date and time (Sat Dec 02 00:04:26 EST 2017)
-        Date hasTimeStamp= Calendar.getInstance().getTime();
+        final Date hasTimeStamp= Calendar.getInstance().getTime();
         final String hasFormattedDate = formatDate(hasTimeStamp);
 
         // get the current user ID and adds it to the AAR POJO, has to have it...
@@ -332,13 +332,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         // If there is a photo, then go through this and add image to storage, then upload to db with file
         if (filePath != null) {
             pd.show();
-            //
-            StorageReference childRef = storageRef.child(filePath.getLastPathSegment());
-            // what can I do here instead of getLastPathSegment()??
-            Log.v(TAG, "this is the childRef" + childRef);
-
-            // upload the image to Storage... Here is where we need to change the size??
-            // TODO: Change the file size to useable data
+            // upload the image to Storage... compress the image
             StorageReference byteRefTest = storageRef.child(hasTitle + filePath.getLastPathSegment() + getSaltString());
             // Get the data from an imageView
             mSelectedImageView.setDrawingCacheEnabled(true); // dunno what this does...
@@ -357,8 +351,17 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
                     mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
 
+                    // check if the inputs are valid prior to entering into DB
+                    // returns true if they are valid, false if not
+                    if (!checkIsValid(hasTitle,hasDescription,hasCause,hasRecommendations)){
+                        return;
+                    }
+
                     // Create a new AAR POJO, then set value inputs
                     AAR aar = new AAR();
+
+                    // check if the inputs are valid prior to entering into DB
+                    checkIsValid(hasTitle,hasDescription,hasCause,hasRecommendations);
 
                     aar.setCategory(mCategory);
                     aar.setTitle(hasTitle);
@@ -370,7 +373,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     aar.setViews(mViews);
                     aar.setPhoto(mDownloadUrl);
                     aar.setUser(currentUserId);
-
 
                     // Add a new document with a generated ID and pass into the Firebase Storage
                     // hasExtras is checking if this is an existing aar or new.
@@ -394,6 +396,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                     } else {
                         // This set date is moved down... so it does not get updated when a user edits their aar
                         aar.setDate(hasFormattedDate);
+                        aar.setTimestamp(hasTimeStamp);
                         db.collection("aars")
                                 .add(aar)
                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -432,7 +435,15 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         }else {
             // ELSE if no image is selected.
             // Create a new AAR POJO,
+
+            // check if the inputs are valid prior to entering into DB
+            // returns true if they are valid, false if not
+            if (!checkIsValid(hasTitle,hasDescription,hasCause,hasRecommendations)){
+                return;
+            }
+
             AAR aar = new AAR();
+
             aar.setCategory(mCategory);
             aar.setTitle(hasTitle);
             aar.setDescription(hasDescription);
@@ -441,7 +452,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             aar.setLocation(mLocation);
             aar.setUpVotes(mUpVotes);
             aar.setViews(mViews);
-            aar.setDate(hasFormattedDate);
             aar.setUser(currentUserId);
 
             if (mHasExtras) {
@@ -470,6 +480,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             } else {
                 // This set date is moved down... so it does not get updated when a user edits their aar
                 aar.setDate(hasFormattedDate);
+                aar.setTimestamp(hasTimeStamp);
 
                 // Add a new document with a generated ID and pass into the Firebase DB
                 db.collection("aars")
@@ -477,8 +488,8 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                         .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                   @Override
                                                   public void onSuccess(DocumentReference documentReference) {
-                                                      Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                                                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
+                         Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
+                          Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
                                                   }
                                               }
                         )
@@ -496,165 +507,6 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             finish();
 
         }}
-
-            // TODO: end of testing
-
-/**
-            // Upload the image to storage
-            UploadTask uploadTask = childRef.putFile(filePath);
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    pd.dismiss();
-                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-                    mDownloadUrl = downloadUrl.toString(); //changed toString, so able to push to db
-
-                    // Create a new AAR POJO, then set value inputs
-                    AAR aar = new AAR();
-
-                    aar.setCategory(mCategory);
-                    aar.setTitle(hasTitle);
-                    aar.setDescription(hasDescription);
-                    aar.setCause(hasCause);
-                    aar.setRecommendations(hasRecommendations);
-                    aar.setLocation(mLocation);
-                    aar.setUpVotes(mUpVotes);
-                    aar.setViews(mViews);
-                    aar.setPhoto(mDownloadUrl);
-                    aar.setUser(currentUserId);
-
-
-                    // Add a new document with a generated ID and pass into the Firebase Storage
-                        // hasExtras is checking if this is an existing aar or new.
-                    if (mHasExtras) {
-                        db.collection("aars").document(mAarId)
-                                .set(aar)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Toast.makeText(EditorActivity.this,"AAR updated", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                        // This updates the date with the first date it was created
-                        db.collection("aars").document(mAarId).update("date", mDate);
-
-
-                    } else {
-                        // This set date is moved down... so it does not get updated when a user edits their aar
-                        aar.setDate(hasFormattedDate);
-                        db.collection("aars")
-                                .add(aar)
-                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                          @Override
-                                                          public void onSuccess(DocumentReference documentReference) {
-                                                              Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                                                              Toast.makeText(EditorActivity.this, "AAR Successfully Added", Toast.LENGTH_SHORT).show();
-                                                          }
-                                                      }
-                                )
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w("EditorActivity.java", "Error adding document", e);
-                                        Toast.makeText(EditorActivity.this, "Upload Failure", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                    }
-
-                    // closes EditorActivity
-                    pd.dismiss();
-                    finish();
-
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    pd.dismiss();
-                    Toast.makeText(EditorActivity.this, "Upload Failed -> " + e, Toast.LENGTH_SHORT).show();
-
-                    // closes EditorActivity
-                    finish();
-                }
-            });
-        } else {
-            // ELSE if no image is selected.
-            // Create a new AAR POJO,
-            AAR aar = new AAR();
-            aar.setCategory(mCategory);
-            aar.setTitle(hasTitle);
-            aar.setDescription(hasDescription);
-            aar.setCause(hasCause);
-            aar.setRecommendations(hasRecommendations);
-            aar.setLocation(mLocation);
-            aar.setUpVotes(mUpVotes);
-            aar.setViews(mViews);
-            aar.setDate(hasFormattedDate);
-            aar.setUser(currentUserId);
-
-            if (mHasExtras) {
-                db.collection("aars").document(mAarId)
-                        .set(aar)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(EditorActivity.this,"AAR updated", Toast.LENGTH_SHORT).show();
-                                pd.dismiss();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(EditorActivity.this, "AAR failed to Update, Try again", Toast.LENGTH_SHORT).show();
-                                pd.dismiss();
-                            }
-                        });
-                // if the aar alreadys exists, then keep the date the same it was initially created
-                    db.collection("aars").document(mAarId).update("date", mDate);
-                // if a photo already exists, will keep it the same
-                if (mDownloadUrl != null) {
-                    db.collection("aars").document(mAarId).update("photo", mDownloadUrl);
-                }
-            } else {
-                // This set date is moved down... so it does not get updated when a user edits their aar
-                aar.setDate(hasFormattedDate);
-
-                // Add a new document with a generated ID and pass into the Firebase DB
-                db.collection("aars")
-                        .add(aar)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                  @Override
-                                                  public void onSuccess(DocumentReference documentReference) {
-                                                      Log.d("EditorActivity.java", "DocumentSnapshot added with ID: " + documentReference.getId());
-                                                      Toast.makeText(EditorActivity.this, "AAR submitted", Toast.LENGTH_SHORT).show();
-                                                  }
-                                              }
-                        )
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w("EditorActivity.java", "Error adding document", e);
-                            }
-                        });
-
-            }
-
-            // closes EditorActivity
-            pd.dismiss();
-            finish();
-        }
-    }
-
-
-    **/
-
 
     /**
      * Return the formatted date string (i.e. "Mar 3, 1984") from a Date object.
@@ -784,5 +636,33 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         return saltStr;
     }
 
+    // Method checks if the user entries are not empty, throws an error if they are, try it out brah!
+    public boolean checkIsValid(String userHasTitle, String userHasDescription, String userHasCause,
+            String userHasRecommendations) {
+
+        if (TextUtils.isEmpty(userHasTitle)){
+            mTitleEditText.setError("Please add Title");
+        }
+        if (TextUtils.isEmpty(userHasDescription)) {
+            mDescriptionEditText.setError("Please add Description");
+
+        }
+        if (TextUtils.isEmpty(userHasCause)) {
+            mCauseEditText.setError("Please add root cause");
+
+        }
+        if (TextUtils.isEmpty(userHasRecommendations)) {
+            mRecommendationsEditText.setError("Please add recommendations");
+
+        }
+
+        if (TextUtils.isEmpty(userHasTitle) || TextUtils.isEmpty(userHasDescription) || TextUtils.isEmpty(userHasCause) ||
+                TextUtils.isEmpty(userHasRecommendations)) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
 
 }

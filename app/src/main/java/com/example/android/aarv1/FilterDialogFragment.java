@@ -177,9 +177,9 @@ public class FilterDialogFragment extends DialogFragment {
     public String getSelectedSortBy() {
         String selected = (String) mSortSpinner.getSelectedItem();
         if (getString(R.string.sort_by_most_recent).equals(selected)) {
-            return AAR.FIELD_DATE;
+            return AAR.FIELD_TIMESTAMP;
         } if (getString(R.string.sort_by_oldest).equals(selected)) {
-            return AAR.FIELD_DATE;
+            return AAR.FIELD_TIMESTAMP;
         } if (getString(R.string.sort_by_votes).equals(selected)) {
             return AAR.FIELD_UPVOTES;
         } if (getString(R.string.sort_by_views).equals(selected)) {

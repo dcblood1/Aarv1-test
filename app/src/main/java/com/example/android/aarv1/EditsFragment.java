@@ -195,11 +195,9 @@ public class EditsFragment extends Fragment implements
         db = FirebaseFirestore.getInstance();
 
         // grab the initial query of Firestore Collection "aars"
-        //mQuery = db.collection("aars").orderBy("date", Query.Direction.DESCENDING);
-        mQuery = db.collection("aars").whereEqualTo("user",mFirebaseAuth.getUid()).orderBy("date", Query.Direction.DESCENDING);
+        mQuery = db.collection("aars").whereEqualTo("user",mFirebaseAuth.getUid()).orderBy("timestamp", Query.Direction.DESCENDING);
+        // if it doesn't show up for other users, let me know... me...
 
-
-        Log.v(TAG,"this is the mquery in the EditsFragment" + mQuery);
     }
 
     // Initializes the Firestore adapter with the appropriate options
@@ -236,7 +234,6 @@ public class EditsFragment extends Fragment implements
                 } else{
                     mEditsRecycler.setVisibility(View.VISIBLE);
                     editsEmptyTextView.setVisibility(View.GONE);
-                    //prograssBarView.setVisibility(View.GONE);
                 }
             }
         };

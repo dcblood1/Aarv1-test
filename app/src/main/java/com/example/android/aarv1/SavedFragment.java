@@ -118,10 +118,6 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
         //initialize Firestore and main RecyclerView
         init();
 
-
-        Log.v(TAG,"mUser inOnCreate bottom" + mUser);
-
-        String mUserTest = mUser;
         mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
 
     }
@@ -221,9 +217,6 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
         Intent detail_intent = new Intent(getActivity(), AarDetailActivity.class);
         detail_intent.putExtra(AarDetailActivity.KEY_AAR_ID, aar.getId());
 
-        // Get reference to the aars why???????
-        //mAarRef = db.collection("aars").document(aar.getId());
-
         // need to call
         startActivity(detail_intent);
     }
@@ -249,7 +242,7 @@ public class SavedFragment extends Fragment implements AarAdapter.OnAarSelectedL
     protected void init(){
         db = FirebaseFirestore.getInstance();
 
-        mQuery = db.collection("aars").whereEqualTo("userUpVotes." + getUid(),true).orderBy("date", Query.Direction.DESCENDING);
+        mQuery = db.collection("aars").whereEqualTo("userUpVotes." + getUid(),true).orderBy("timestamp", Query.Direction.DESCENDING);
 
     }
 

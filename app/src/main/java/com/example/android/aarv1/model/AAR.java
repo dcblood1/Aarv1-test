@@ -1,7 +1,9 @@
 package com.example.android.aarv1.model;
 
 import com.google.firebase.firestore.IgnoreExtraProperties;
+import com.google.firebase.firestore.ServerTimestamp;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,10 +20,11 @@ public class AAR {
     public static final String FIELD_CATEGORY = "category";
     public static final String FIELD_DATE = "date";
     public static final String FIELD_NEWEST = "newest";
-    public static final String FIELD_OLDEST = "date";
+    public static final String FIELD_OLDEST = "timestamp";
     public static final String FIELD_VIEWS= "views";
     public static final String FIELD_UPVOTES = "upVotes";
     public static final String FIELD_USER = "user";
+    public static final String FIELD_TIMESTAMP = "timestamp";
     public static final String FIELD_HOTTEST = "hottest"; // going to implement this later, for when it is looked at the most
     // need to add all of these fileds to the actual AAR POJO
 
@@ -38,6 +41,7 @@ public class AAR {
     private int hotness;
     private String user;
     public Map<String, Boolean> userUpVotes = new HashMap<>();
+    private @ServerTimestamp Date timestamp;
 
     // firebase requires you to have object with no calls in it.
     public AAR() {}
@@ -129,5 +133,13 @@ public class AAR {
     public Map<String,Boolean> getUserUpVotes(){return this.userUpVotes;}
 
     public void setUserUpVotes( Map<String, Boolean> userUpVotes) {this.userUpVotes = userUpVotes;}
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
 
 }

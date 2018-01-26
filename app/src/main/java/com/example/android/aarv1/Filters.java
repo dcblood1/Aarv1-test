@@ -26,7 +26,7 @@ public class Filters {
 
     public static Filters getDefault() {
         Filters filters = new Filters();
-        filters.setSortBy(AAR.FIELD_DATE);
+        filters.setSortBy(AAR.FIELD_TIMESTAMP);
         filters.setSortDirection(Query.Direction.DESCENDING);
 
         return filters;
