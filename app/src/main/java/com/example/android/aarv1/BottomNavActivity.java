@@ -1,7 +1,10 @@
 package com.example.android.aarv1;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.android.aarv1.model.UserProfile;
 import com.example.android.aarv1.viewmodel.MainActivityViewModel;
@@ -66,6 +70,9 @@ public class BottomNavActivity extends AppCompatActivity implements
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
+    @BindView(R.id.bottom_nav_empty_text_view)
+    TextView mEmptyTextView;
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -98,6 +105,12 @@ public class BottomNavActivity extends AppCompatActivity implements
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
+        //see if we are connected to a network / wifi
+        ConnectivityManager cm = (ConnectivityManager) BottomNavActivity.this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
         // initialize firebase Firestore db
@@ -116,6 +129,10 @@ public class BottomNavActivity extends AppCompatActivity implements
         // View model
         // What do I need to do to update the view Model??
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+
+        if (isConnected != true) {
+            mEmptyTextView.setText(R.string.no_internet);
+        } // Dont set it here but elsewhere?
 
     }
 

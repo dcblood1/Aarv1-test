@@ -1,5 +1,10 @@
 package com.example.android.aarv1;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -81,18 +86,27 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
     @BindView(R.id.image_progress_bar)
     ProgressBar mImageProgressBar;
 
+    private FirebaseFirestore db;
     private FirebaseFirestore mFirestore;
     private DocumentReference mAarRef;
     private DocumentReference mUserProfileRef;
     private ListenerRegistration mAarRegistration;
     private FirebaseAuth mFirebaseAuth;
     private String mAarId;
+    private String mAarPhotoUri;
+    private boolean mIsConnected;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aar_detail);
         ButterKnife.bind(this);
+
+        //see if we are connected to a network / wifi
+        ConnectivityManager cm = (ConnectivityManager) AarDetailActivity.this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        mIsConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
 
         // Get aar ID from extras
         mAarId = getIntent().getExtras().getString(KEY_AAR_ID);
@@ -102,7 +116,7 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
         Log.v(TAG,"this is the mAarId" + mAarId);
 
         // Initialize Firestore
-        mFirestore = FirebaseFirestore.getInstance();
+         mFirestore = FirebaseFirestore.getInstance();
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
 
@@ -112,7 +126,34 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
 
         mImageProgressBar.setVisibility(View.VISIBLE);
 
+        mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // Or just go to another activity...
+                // How do I get the Uri of the image....
+                onImageClick();
+            }
+        });
+
     }
+
+    @OnClick(R.id.aar_image_view)
+    public void onImageClick() {
+        // create an intent to go to the next activity
+
+        if (mAarPhotoUri != null) {
+
+            Uri imageUri = Uri.parse(mAarPhotoUri);
+            // Go to the details page of the selected aar, sending aar snapshow ID
+            Intent detail_intent = new Intent(this, DetailPictureActivity.class);
+
+            detail_intent.setData(imageUri);
+
+            startActivity(detail_intent);
+        }
+    }
+
 
     @Override
     protected void onStart() {
@@ -199,8 +240,14 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                     public void onFailure(@NonNull Exception e) {
                         Log.d(TAG,"addUpVote Fail",e);
 
-                        Snackbar.make(findViewById(android.R.id.content), "Failed to change vote",
-                                Snackbar.LENGTH_SHORT).show();
+                        if (mIsConnected != true) {
+                            Snackbar.make(findViewById(android.R.id.content), "Cannot change vote - Internet Connection Problem",
+                                    Snackbar.LENGTH_LONG).show();
+                        } else {
+
+                            Snackbar.make(findViewById(android.R.id.content), "Failed to change vote",
+                                    Snackbar.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
@@ -233,17 +280,12 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
             mUpVoteImageButton.setImageResource(R.drawable.icons8scrollup48_notfilled);
         }
 
-
-        // Background Image, set with taken photo, otherwise use pic
+        // Background Image, set with taken photo, otherwise use default pic
         if (aar.getPhoto() !=  null) {
-
-            //Glide.with(mImageView.getContext())
-             //       .load(aar.getPhoto())
-              //      .centerCrop() // fitCenter inputs the entire image... but its garbage, centerCrop cuts off the edges...
-               //     .into(mImageView);
-
             // all of this code is needed so that the progress bar is shown until the image is completely loaded
             // using Glide to load image into ImageView
+            mAarPhotoUri = aar.getPhoto();
+            Log.v(TAG,"this is the aar.getPhoto string" + aar.getPhoto());
             Glide.with(mImageView.getContext())
                     .load(aar.getPhoto())
                     .listener(new RequestListener<String, GlideDrawable>() {
@@ -269,7 +311,6 @@ public class AarDetailActivity extends AppCompatActivity implements EventListene
                     .into(mImageView);
             mImageProgressBar.setVisibility(View.GONE);
         }
-
 
     }
 

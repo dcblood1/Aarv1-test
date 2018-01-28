@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -58,6 +59,8 @@ public class MainFragment extends Fragment implements
     private DocumentReference mAarRef; // used for selecting an aar
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private LinearLayoutManager mLinearLayoutManager;
+    private Parcelable mListState;
 
     // limits the amount of aars we get back
     private static final int LIMIT = 50;
@@ -145,8 +148,6 @@ public class MainFragment extends Fragment implements
 
         //initialize Firestore and main RecyclerView
         init();
-        //getAars();
-
 
         // These values are being used to pass to FilterDialogFragment, so the user selections can be saved
         if (getArguments() != null) {
@@ -165,6 +166,8 @@ public class MainFragment extends Fragment implements
         mFilterDialog = new FilterDialogFragment();
         mFilterDialog.setArguments(bundle);
 
+
+
     }
 
     @Override
@@ -174,6 +177,8 @@ public class MainFragment extends Fragment implements
         View view= inflater.inflate(R.layout.fragment_main, container, false);
         // I think this is how I need to use it??
         mAarsRecycler = view.findViewById(R.id.recycler_aars_frag);
+
+        mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         getAars();
@@ -255,11 +260,8 @@ public class MainFragment extends Fragment implements
         };////////////////////
 
         // notifyDataSetChanged is in a standard recyclerView, does it notify us if something changes?
-        Log.v(TAG,"This is mAarAdapter=" + mAarAdapter);
         mAarAdapter.notifyDataSetChanged();
 
-        Log.v(TAG,"This is mAarsRecycler=" + mAarsRecycler);
-        //mAarsRecycler.setLayoutManager(new LinearLayoutManager(this));
         mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         // sets the RecyclerView to our current adapter.
@@ -272,6 +274,15 @@ public class MainFragment extends Fragment implements
 
         // Apply filters
         onFilter(mViewModel.getFilters());
+
+
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable("ListState", mAarsRecycler.getLayoutManager().onSaveInstanceState());
     }
 
     // supporting method for adding a view to an AAR when the user clicks on it...
@@ -313,9 +324,8 @@ public class MainFragment extends Fragment implements
         // Get reference to the aars
         mAarRef = db.collection("aars").document(aar.getId());
 
-        // add view to the AAR
+        // add view to the AAR, to be tracked for how popular it is
         addView(mAarRef);
-
 
         startActivity(detail_intent);
     }

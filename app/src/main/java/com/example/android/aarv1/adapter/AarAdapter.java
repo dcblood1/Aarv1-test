@@ -6,9 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.android.aarv1.R;
 import com.example.android.aarv1.model.AAR;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
@@ -26,7 +30,7 @@ import butterknife.ButterKnife;
 // RecyclerView Adapter for a list of aar's
 public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.AARHolder> {
 
-    // this method is called in main activity, then the void method is created in main activity
+    // this method is called in the selected activity
     public interface OnAarSelectedListener {
         void onAarSelected(DocumentSnapshot aar);
     }
@@ -92,6 +96,9 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
         @BindView(R.id.date_text)
         TextView dateText;
 
+        @BindView(R.id.aar_item_progress_bar)
+        ProgressBar mItemProgressBar;
+
 
         public AARHolder(View itemView) {
             super(itemView);
@@ -118,6 +125,19 @@ public class AarAdapter extends FirestoreRecyclerAdapter<AarAdapter,AarAdapter.A
             if (aar.getPhoto() !=  null) {
                 Glide.with(imageView.getContext())
                         .load(aar.getPhoto())
+                        .listener(new RequestListener<String, GlideDrawable>() {
+                            @Override
+                            public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                                mItemProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                                mItemProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+                        })
                         .into(imageView);
             } else {
                 Glide.with(imageView.getContext())

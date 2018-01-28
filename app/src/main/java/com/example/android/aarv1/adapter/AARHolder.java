@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
  * RecyclerView Holder
  */
 
-public class AARHolder extends RecyclerView.ViewHolder{
+public class AARHolder extends RecyclerView.ViewHolder {
 
     @BindView(R.id.aar_item_image)
     ImageView imageView;

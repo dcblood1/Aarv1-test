@@ -40,6 +40,10 @@
             android:name=".AarDetailActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <activity
+            android:name=".DetailPictureActivity"
+            />
+
     </application>
 
 </manifest>

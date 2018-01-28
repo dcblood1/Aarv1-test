@@ -83,4 +83,8 @@
     <!-- Delte AAR -->
     <string name="delete_aar">Delete AAR</string>
 
+    <!-- No Internet-->
+    <string name="no_internet">No Internet Connection, Please connect to a newtork.</string>
+
+
 </resources>
