@@ -16,6 +16,8 @@ public class MainActivityViewModel extends ViewModel {
 
     private boolean mIsSigningIn;
     private Filters mFilters;
+    private String mSearchDescriptionString;
+    private String mOrderDescriptionString;
 
     public MainActivityViewModel(){
         mIsSigningIn = false;
@@ -38,4 +40,18 @@ public class MainActivityViewModel extends ViewModel {
         Log.v(String.valueOf(MainActivityViewModel.class),"this is setFilters() in mainActivityViewModel");
         this.mFilters = mFilters; }
 
+    public String getSearchDescription() {
+        return mSearchDescriptionString;
+    }
+    public void setSearchDescription(String mSearchDescriptionString) {
+        this.mSearchDescriptionString = mSearchDescriptionString;
+    }
+
+    public String getOrderDescription() {
+        return mOrderDescriptionString;
+    }
+
+    public void setOrderDescription(String mOrderDescriptionString) {
+        this.mOrderDescriptionString = mOrderDescriptionString;
+    }
 }

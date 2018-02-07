@@ -73,7 +73,6 @@ public class Filters {
     }
 
     // This sets the string and shows the user their filter, in the filter bar
-    // NEED TO FIX THIS ONCE I GET FILTERS WORKING
     public String getSearchDescription(Context context) {
         StringBuilder desc = new StringBuilder();
 

@@ -58,6 +58,7 @@ public class BottomNavActivity extends AppCompatActivity implements
     private FirebaseFirestore mFirestore;
     private DocumentReference mUserProfileRef;
     private ListenerRegistration mUserProfileRegistration; // for onEvent
+    private MainFragment mMainFragment;
 
     // limits the amount of aars we get back... want a limit?
     private static final int LIMIT = 50;
@@ -132,7 +133,12 @@ public class BottomNavActivity extends AppCompatActivity implements
 
         if (isConnected != true) {
             mEmptyTextView.setText(R.string.no_internet);
-        } // Dont set it here but elsewhere?
+        }
+
+        mMainFragment = new MainFragment();
+
+        Log.v(TAG,"onCreate in BottomNavActivity called");
+        // this is called once...
 
     }
 
@@ -148,10 +154,6 @@ public class BottomNavActivity extends AppCompatActivity implements
 
         mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
         mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
-
-        // this is a listener for the firestore to know to be accessed? essentially?
-        // This is called in onActivity Result now...
-        //mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
 
     }
 
@@ -179,9 +181,6 @@ public class BottomNavActivity extends AppCompatActivity implements
                 startSignIn();
             }
 
-            //// USED TO BE HERE///
-            //mUserProfileRef = db.collection("users").document(mFirebaseAuth.getCurrentUser().getUid());
-            //mUserProfileRegistration = mUserProfileRef.addSnapshotListener(this);
         }
     }
 
@@ -206,7 +205,6 @@ public class BottomNavActivity extends AppCompatActivity implements
 
         mViewModel.setIsSigningIn(true);
 
-        // get the current user... here???
     }
 
     @Override
@@ -230,7 +228,9 @@ public class BottomNavActivity extends AppCompatActivity implements
     // function called to switch to main fragment
     public void switchToMainFragment() {
         FragmentManager manager = getSupportFragmentManager();
+        //manager.beginTransaction().replace(R.id.content, new MainFragment()).commit();
         manager.beginTransaction().replace(R.id.content, new MainFragment()).commit();
+
     }
 
     // function called to switch to edits fragment
@@ -253,56 +253,23 @@ public class BottomNavActivity extends AppCompatActivity implements
 
     // Allows the user to select filters to display the correct data, used in MainFragment and ViewModel.
     // Dont necessarily understand how that all works...
+    // how is this called??
     @Override
     public void onFilter(Filters filters) {
 
         Log.v(TAG,"onFilter in BottomNavActivity being called");
 
-        // Construct query basic query
-        Query query = db.collection("aars");
-
-        //Category (equality filter)
-        if (filters.hasCategory()){
-            query = query.whereEqualTo("category", filters.getCategory());
-        }
-
-        // Location (equality filters)
-        if (filters.hasLocation()) {
-            query = query.whereEqualTo("location", filters.getLocation());
-        }
-
-        //Sort by (orderBy with direction)
-        if (filters.hasSortBy()) {
-            query = query.orderBy(filters.getSortBy(), filters.getSortDirection());
-        }
-
-        // Limit items
-        query = query.limit(LIMIT);
-
-        // Update the query
-        mQuery = query;
-
         // Save filters to mViewModel so data can be passed
         mViewModel.setFilters(filters);
-
-        // This will pass data to the fragment from this activity... what do I need to pass? The filters right??
-        Bundle bundle = new Bundle();
-        //bundle.putString("filters", String.valueOf(filters));
-        //bundle.putString("filters", String.valueOf(mViewModel));
-        // So you really are just passing all of the usable data to the fragment?
-        // is it just allowing the viewmodel to connect or what??
-        bundle.putString("filters","cats");
-        bundle.putString("category",filters.getCategory());
-        bundle.putString("location",filters.getLocation());
-        bundle.putString("sortBy", filters.getOrderDescription(this));
-
-        // set Fragmentclass Arguments
-        MainFragment fragobj = new MainFragment();
-        fragobj.setArguments(bundle);
+        mViewModel.setSearchDescription(filters.getSearchDescription(this));
+        mViewModel.setOrderDescription(filters.getOrderDescription(this));
 
         // This replaces the content placeholder with the new fragment created.
         FragmentManager manager = getSupportFragmentManager();
-        manager.beginTransaction().replace(R.id.content, fragobj).commit();
+
+        // so this is ok to create a new one, you are updating everything...
+        // the only place I don't want a new one is when I'm swapping back and nothing has changed.
+        manager.beginTransaction().replace(R.id.content,new MainFragment()).commit();
 
     }
 

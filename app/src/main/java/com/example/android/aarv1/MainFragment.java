@@ -50,6 +50,7 @@ public class MainFragment extends Fragment implements
         AarAdapter.OnAarSelectedListener{
 
     private static final String TAG = "MainFragment";
+    private String KEY_POSITION = "KeyPosition";
 
     // Access a Cloud Firestore instance from your Activity
     private FirebaseFirestore db;
@@ -61,6 +62,7 @@ public class MainFragment extends Fragment implements
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private LinearLayoutManager mLinearLayoutManager;
     private Parcelable mListState;
+    private int mVisiblePosition = RecyclerView.NO_POSITION;
 
     // limits the amount of aars we get back
     private static final int LIMIT = 50;
@@ -115,6 +117,7 @@ public class MainFragment extends Fragment implements
      * @return A new instance of fragment MainFragment.
      */
     // When BottomNavActivity creates a new MainFragment, the values were passed in
+    // this is no longer used, left in for example
     public static MainFragment newInstance(String filters, String category, String location, String sortBy) {
         MainFragment fragment = new MainFragment();
         Bundle args = new Bundle();
@@ -136,11 +139,12 @@ public class MainFragment extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.v(TAG,"onCreate in MainFragment called");
+
         // initialize firebase authentication
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         // View model
-        // What do I need to do to update the view Model??
         mViewModel = ViewModelProviders.of(getActivity()).get(MainActivityViewModel.class);
 
         // Enable Firestore logging
@@ -159,14 +163,19 @@ public class MainFragment extends Fragment implements
 
         }
         // Filter Dialog, This is needed to make the user selections saved when going back into the dialog filter
+        // this is being created in OnCreate...
+        Filters initialFilter = mViewModel.getFilters();
+
         Bundle bundle = new Bundle();
-        bundle.putString("category",mCategory);
-        bundle.putString("location",mLocation);
-        bundle.putString("sortBy",mSortBy);
+        bundle.putString("category",initialFilter.getCategory());
+        bundle.putString("location",initialFilter.getLocation());
+        bundle.putString("sortBy",initialFilter.getSortBy());
         mFilterDialog = new FilterDialogFragment();
         mFilterDialog.setArguments(bundle);
 
-
+        // I dont need a new filterDialog everytime I create this do I?
+        // in a fragment, onCreate is created every time it is clicked on
+        // therefore a new one is created, not allowing me to reference it later
 
     }
 
@@ -185,6 +194,7 @@ public class MainFragment extends Fragment implements
 
         ButterKnife.bind(this,view);
         return view;
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -245,7 +255,7 @@ public class MainFragment extends Fragment implements
             public void onDataChanged() {
                 super.onDataChanged();
 
-                Log.v(TAG,"this is the itemCount = " + getItemCount());
+                Log.v(TAG,"this is the itemCount in mainFragment = " + getItemCount());
 
                 //if the item count is 0 in the adapter, then it sets an empty text view, or vice versa
                 if (getItemCount() == 0) {
@@ -262,27 +272,48 @@ public class MainFragment extends Fragment implements
         // notifyDataSetChanged is in a standard recyclerView, does it notify us if something changes?
         mAarAdapter.notifyDataSetChanged();
 
-        mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-
+        //mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mAarsRecycler.setLayoutManager(mLinearLayoutManager);
         // sets the RecyclerView to our current adapter.
         mAarsRecycler.setAdapter(mAarAdapter);
+
+        // why is there no items in the adapter??!!
+
+        Log.v(TAG,"about to smooth scroll..." + mAarAdapter.getItemCount());
+
+        //mAarsRecycler.smoothScrollToPosition(5);
+        //mLinearLayoutManager.scrollToPositionWithOffset(5,5);
+
+
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
+        Log.v(TAG,"onStart in MainFragment being called");
+
         // Apply filters
         onFilter(mViewModel.getFilters());
 
+    }
 
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        //mLastFirstVisiblePosition = ((LinearLayoutManager)mAarsRecycler.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public void onResume() {
+        super.onResume();
 
-        outState.putParcelable("ListState", mAarsRecycler.getLayoutManager().onSaveInstanceState());
+        Log.v(TAG,"OnResume being called in MainFragment");
+
+        //((LinearLayoutManager) mAarsRecycler.getLayoutManager()).scrollToPosition(mLastFirstVisiblePosition);
     }
 
     // supporting method for adding a view to an AAR when the user clicks on it...
@@ -335,9 +366,9 @@ public class MainFragment extends Fragment implements
     @OnClick(R.id.filter_bar)
     public void onFilterClicked() {
         // Show the dialog containing filter options
-        Log.v(TAG,"onFilterClicked now");
+        Log.v(TAG,"onFilter bar Clicked now");
 
-        // These both work... idk which one is correct to use.
+        // This just shows the dialog fragment
         mFilterDialog.show(getChildFragmentManager(), FilterDialogFragment.TAG);
         //mFilterDialog.show(getActivity().getSupportFragmentManager(), FilterDialogFragment.TAG);
     }
@@ -345,19 +376,25 @@ public class MainFragment extends Fragment implements
     // when user clicks on cancel button, clears filters and sets them to default
     @OnClick(R.id.button_clear_filter)
     public void onClearFilter(){
+
+        // so clearly this is doing absolutely nothing...
+        // why is this doing nothing??
         mFilterDialog.resetFilters();
 
         // This needs to be called... due to the bundles in onCreate saving the users last selection.
         // Might need to fix this later? Will it be a memory problem if it continues to create new fragments?
         mFilterDialog = new FilterDialogFragment();
 
-
+        // get default filters and update recyclerView
         onFilter(Filters.getDefault());
+
     }
 
     // Allows the user to select filters to display the correct data
     @Override
     public void onFilter(Filters filters) {
+
+        Log.v(TAG,"onFilter in MainFragment called");
 
         // Construct query basic query
         Query query = db.collection("aars");
@@ -390,9 +427,6 @@ public class MainFragment extends Fragment implements
     // Set header
         mCurrentSearchView.setText(Html.fromHtml(filters.getSearchDescription(getActivity())));
         mCurrentSortByView.setText(filters.getOrderDescription(getActivity()));
-
-    // Save filters
-        mViewModel.setFilters(filters);
 
     }
 
