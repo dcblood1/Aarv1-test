@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -70,6 +71,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
     private int mViews = 0;
     Uri filePath;
     private String mDate;
+    private Date mTimeStamp;
     ProgressDialog pd;
     // Constant for the photo picker?? idk why this is needed.
     private static final int RC_PHOTO_PICKER = 2;
@@ -259,18 +261,12 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals(getString(R.string.rig_move))) {
-                        mCategory = getString(R.string.rig_move);
-                    } else if(selection.equals(getString(R.string.drilling))) {
-                        mCategory = getString(R.string.drilling);
-                    } else if(selection.equals(getString(R.string.casing))) {
-                        mCategory = getString(R.string.casing);
-                    } else if(selection.equals(getString(R.string.cementing))) {
-                        mCategory = getString(R.string.cementing);
-                    } else if (selection.equals(getString(R.string.skidding)));
+                    mCategory = selection;
                 }
             }
 
+            // this should never happen since the adapter is initially on a selection.
+            // yell and scream if this happens.
             public void onNothingSelected(AdapterView<?> parent) {
                 mCategory = "Not Selected";
             }
@@ -282,13 +278,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals(getString(R.string.eagleford))){
-                        mLocation = getString(R.string.eagleford);
-                    } else if (selection.equals(getString(R.string.haynesville))) {
-                        mLocation = getString(R.string.haynesville);
-                    } else if(selection.equals(getString(R.string.permian))) {
-                        mLocation = getString(R.string.permian);
-                    }
+                    mLocation = selection;
                 }
             }
 
@@ -343,7 +333,15 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
             byte[] data = baos.toByteArray();
 
             UploadTask byteUploadTask = byteRefTest.putBytes(data);
-            byteUploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            byteUploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    // I cant get the system.out.print to work correctly... going too fast?
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                    Toast.makeText(EditorActivity.this, "Upload is " + progress + "% complete", Toast.LENGTH_SHORT).show();
+
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     pd.dismiss();
@@ -393,8 +391,9 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                                 });
                         // This updates the date with the first date it was created
                         db.collection("aars").document(mAarId).update("date", mDate);
+                        db.collection("aars").document(mAarId).update("timestamp",mTimeStamp);
                     } else {
-                        // This set date is moved down... so it does not get updated when a user edits their aar
+                        // If there are no extras / if it is new, then set the date and time stamp.
                         aar.setDate(hasFormattedDate);
                         aar.setTimestamp(hasTimeStamp);
                         db.collection("aars")
@@ -473,6 +472,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
                         });
                 // if the aar alreadys exists, then keep the date the same it was initially created
                 db.collection("aars").document(mAarId).update("date", mDate);
+                db.collection("aars").document(mAarId).update("timestamp", mTimeStamp);
                 // if a photo already exists, will keep it the same
                 if (mDownloadUrl != null) {
                     db.collection("aars").document(mAarId).update("photo", mDownloadUrl);
@@ -559,6 +559,7 @@ public class EditorActivity extends AppCompatActivity implements EventListener<D
         mRecommendationsEditText.setText(aar.getRecommendations());
         mLocationSpinner.setSelection(((ArrayAdapter<String>)mLocationSpinner.getAdapter()).getPosition(aar.getLocation()));
         mDate = aar.getDate();
+        mTimeStamp = aar.getTimestamp();
 
         // if there is a photo, grab the initial url, then put it at the bottom. & if filrepath(a new image) is not selected).
         if (aar.getPhoto() != null && filePath == null) {

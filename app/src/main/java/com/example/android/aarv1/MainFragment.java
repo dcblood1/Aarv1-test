@@ -139,6 +139,8 @@ public class MainFragment extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
         Log.v(TAG,"onCreate in MainFragment called");
 
         // initialize firebase authentication
@@ -177,23 +179,32 @@ public class MainFragment extends Fragment implements
         // in a fragment, onCreate is created every time it is clicked on
         // therefore a new one is created, not allowing me to reference it later
 
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_main, container, false);
         // I think this is how I need to use it??
         mAarsRecycler = view.findViewById(R.id.recycler_aars_frag);
 
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
-        mAarsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mAarsRecycler.setLayoutManager(mLinearLayoutManager);
 
         getAars();
 
+
+
         ButterKnife.bind(this,view);
+
+
         return view;
+
+
 
     }
 
@@ -213,6 +224,7 @@ public class MainFragment extends Fragment implements
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+
     }
 
     @Override
@@ -228,16 +240,25 @@ public class MainFragment extends Fragment implements
         // grab the initial query of Firestore Collection "aars"
         mQuery = db.collection("aars").orderBy("date", Query.Direction.DESCENDING);
         Log.v(TAG,"this is the mquery in the MainFragment");
+
     }
 
     // Initializes the Firestore adapter with the appropriate options
     private void getAars(){
 
-        // this sets the opions of the adapter
+         //this sets the opions of the adapter
+        // the reason you cannot save scroll view is due to the lifecycle owner being set to onstart for the fragment??
+        // need to take this out and set to something else for the scroll position to be saved.
+        // but can you do this for fragments?? idk...
+
         FirestoreRecyclerOptions<AAR> response = new FirestoreRecyclerOptions.Builder<AAR>()
                 .setQuery(mQuery, AAR.class)
                 .setLifecycleOwner(this)
                 .build();
+
+        //FirestoreRecyclerOptions<AAR> response = new FirestoreRecyclerOptions.Builder<AAR>()
+        //        .setQuery(mQuery, AAR.class)
+        //        .build();
 
         // create new AarAdapter, taking in the Query, the Firestore options(response), and the listener for the onClick
         mAarAdapter = new AarAdapter(mQuery,response, this){
@@ -277,15 +298,6 @@ public class MainFragment extends Fragment implements
         // sets the RecyclerView to our current adapter.
         mAarsRecycler.setAdapter(mAarAdapter);
 
-        // why is there no items in the adapter??!!
-
-        Log.v(TAG,"about to smooth scroll..." + mAarAdapter.getItemCount());
-
-        //mAarsRecycler.smoothScrollToPosition(5);
-        //mLinearLayoutManager.scrollToPositionWithOffset(5,5);
-
-
-
     }
 
     @Override
@@ -297,14 +309,26 @@ public class MainFragment extends Fragment implements
         // Apply filters
         onFilter(mViewModel.getFilters());
 
+        // Start listening for Firestore updates
+        if (mAarAdapter != null) {
+            mAarAdapter.startListening();
+        }
+
     }
 
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        Log.v(TAG,"onViewStateRestored in MainFragment");
+
+        super.onViewStateRestored(savedInstanceState);
+
+
+    }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        //mLastFirstVisiblePosition = ((LinearLayoutManager)mAarsRecycler.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     }
 
     @Override
@@ -313,8 +337,10 @@ public class MainFragment extends Fragment implements
 
         Log.v(TAG,"OnResume being called in MainFragment");
 
-        //((LinearLayoutManager) mAarsRecycler.getLayoutManager()).scrollToPosition(mLastFirstVisiblePosition);
-    }
+        }
+
+
+
 
     // supporting method for adding a view to an AAR when the user clicks on it...
     private Task<Void> addView(final DocumentReference aarRef){

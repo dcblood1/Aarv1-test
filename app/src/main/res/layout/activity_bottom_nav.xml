@@ -20,8 +20,6 @@
         app:titleMarginStart="24dp"
         app:titleTextColor="@android:color/white" />
 
-
-
     <FrameLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
